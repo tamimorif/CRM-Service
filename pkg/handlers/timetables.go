@@ -2,96 +2,112 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/softclub-go-0-0/tamim-crm-service/pkg/models"
+	"github.com/paraparadox/datetime"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
+	"github.com/softclub-go-0-0/crm-service/pkg/models"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"strconv"
 )
 
-func (h *Handler) GetAllTimetables(c *gin.Context) {
-	var timetable []models.TimeTable
-	result := h.DB.Find(&timetable)
+func (h *handler) GetAllTimetables(c *gin.Context) {
+	var timetables []models.Timetable
+	result := h.DB.Find(&timetables)
 	if result.Error != nil {
-		log.Println("DB error - cannot find teachers:", result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+		log.Println("DB error - cannot find timetables:", result.Error)
+		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, timetable)
+	c.JSON(http.StatusOK, timetables)
 }
-func (h *Handler) CreateTimetable(c *gin.Context) {
-	var timetable models.TimeTable
-	err := c.ShouldBindJSON(&timetable)
-	if err != nil {
-		log.Fatal("Creating teacher:", err)
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-			"message": "validation error",
-			"err":     err.Error(),
-		})
+
+func (h *handler) CreateTimetable(c *gin.Context) {
+	var timetable models.Timetable
+
+	if err := c.ShouldBindJSON(&timetable); err != nil {
+		log.Println("binding timetable data:", err)
+		helpers.UnprocessableEntity(c, err)
 		return
 	}
-	h.DB.Create(&timetable)
+
+	if err := h.DB.Create(&timetable).Error; err != nil {
+		log.Println("inserting timetable data to DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
 	c.JSON(http.StatusCreated, timetable)
 }
-func (h *Handler) GetOneTimetable(c *gin.Context) {
-	timetableID, err := strconv.Atoi(c.Param("timetableID"))
-	if err != nil {
-		log.Println("client error - bad teacherID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
-		return
-	}
 
-	var timetable models.TimeTable
-	result := h.DB.First(&timetable, timetableID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+func (h *handler) GetOneTimetable(c *gin.Context) {
+	var timetable models.Timetable
+
+	if err := h.DB.First(&timetable, "id = ?", c.Param("timetableID")).Error; err != nil {
+		log.Println("getting a timetable:", err)
+		helpers.NotFound(c, "timetable")
 		return
 	}
 
 	c.JSON(http.StatusOK, timetable)
 }
-func (h *Handler) UpdateTimetable(c *gin.Context) {
-	var timetable models.TimeTable
-	err := h.DB.Where("id = ?", c.Param("timetableID")).First(&timetable).Error
-	if err != nil {
-		log.Println("getting a timetable:", err)
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"message": "There is no such timetable",
-		})
-		return
-	}
-	err = c.ShouldBindJSON(&timetable)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnprocessableEntity)
-		return
-	}
-	h.DB.Save(&timetable)
+
+type timetableDataForUpdate struct {
+	Classroom string        `json:"classroom" binding:"required"`
+	Start     datetime.Time `json:"start" binding:"required"`
+	Finish    datetime.Time `json:"finish" binding:"required"`
 }
-func (h *Handler) DeleteTimetable(c *gin.Context) {
-	timetableID, err := strconv.Atoi(c.Param("timetableID"))
-	if err != nil {
-		log.Println("client error - bad teacherID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+
+func (h *handler) UpdateTimetable(c *gin.Context) {
+	var timetable models.Timetable
+
+	if err := h.DB.Where("id = ?", c.Param("timetableID")).First(&timetable).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a timetable:", err)
+			helpers.NotFound(c, "timetable")
+			return
+		}
+		log.Println("getting a timetable:", err)
+		helpers.InternalServerError(c)
 		return
 	}
-	var timetable models.TimeTable
-	result := h.DB.First(&timetable, timetableID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+
+	var timetableData timetableDataForUpdate
+
+	if err := c.ShouldBindJSON(&timetableData); err != nil {
+		log.Println("binding timetable data:", err)
+		helpers.UnprocessableEntity(c, err)
 		return
 	}
-	h.DB.Delete(&timetable, timetableID)
+
+	if err := h.DB.Model(&timetable).Updates(timetableData).Error; err != nil {
+		log.Println("updating timetable data in DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, timetable)
+}
+
+func (h *handler) DeleteTimetable(c *gin.Context) {
+	var timetable models.Timetable
+
+	if err := h.DB.Where("id = ?", c.Param("timetableID")).First(&timetable).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a timetable:", err)
+			helpers.NotFound(c, "timetable")
+			return
+		}
+		log.Println("getting a timetable:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	if err := h.DB.Delete(&timetable).Error; err != nil {
+		log.Println("deleting timetable data from DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
 	c.JSON(http.StatusOK, timetable)
 }

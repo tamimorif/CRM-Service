@@ -2,96 +2,112 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/softclub-go-0-0/tamim-crm-service/pkg/models"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
+	"github.com/softclub-go-0-0/crm-service/pkg/models"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"strconv"
 )
 
-func (h *Handler) GetAllTeachers(c *gin.Context) {
+func (h *handler) GetAllTeachers(c *gin.Context) {
 	var teachers []models.Teacher
 	result := h.DB.Find(&teachers)
 	if result.Error != nil {
 		log.Println("DB error - cannot find teachers:", result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+		helpers.InternalServerError(c)
 		return
 	}
 
 	c.JSON(http.StatusOK, teachers)
 }
-func (h *Handler) CreateTeacher(c *gin.Context) {
+
+func (h *handler) CreateTeacher(c *gin.Context) {
 	var teacher models.Teacher
-	err := c.ShouldBindJSON(&teacher)
-	if err != nil {
-		log.Fatal("Creating teacher:", err)
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-			"message": "validation error",
-			"err":     err.Error(),
-		})
-		return
-	}
-	h.DB.Create(&teacher)
-	c.JSON(http.StatusCreated, teacher)
-}
-func (h *Handler) GetOneTeacher(c *gin.Context) {
-	teacherID, err := strconv.Atoi(c.Param("teacherID"))
-	if err != nil {
-		log.Println("client error - bad teacherID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+
+	if err := c.ShouldBindJSON(&teacher); err != nil {
+		log.Println("binding teacher data:", err)
+		helpers.UnprocessableEntity(c, err)
 		return
 	}
 
+	if err := h.DB.Create(&teacher).Error; err != nil {
+		log.Println("inserting teacher data to DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusCreated, teacher)
+}
+
+func (h *handler) GetOneTeacher(c *gin.Context) {
 	var teacher models.Teacher
-	result := h.DB.First(&teacher, teacherID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+
+	if err := h.DB.First(&teacher, "id = ?", c.Param("teacherID")).Error; err != nil {
+		log.Println("getting a teacher:", err)
+		helpers.NotFound(c, "teacher")
 		return
 	}
 
 	c.JSON(http.StatusOK, teacher)
 }
-func (h *Handler) UpdateTeacher(c *gin.Context) {
-	var teacher models.Teacher
-	err := h.DB.Where("id = ?", c.Param("teacherID")).First(&teacher).Error
-	if err != nil {
-		log.Println("getting a teacher:", err)
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"message": "There is no such teacher",
-		})
-		return
-	}
-	err = c.ShouldBindJSON(&teacher)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnprocessableEntity)
-		return
-	}
-	h.DB.Save(&teacher)
+
+type teacherDataForUpdate struct {
+	Name    string `json:"name" binding:"required,alphaunicode"`
+	Surname string `json:"surname" binding:"required,alphaunicode"`
+	Phone   string `json:"phone" binding:"required,len=12,numeric"`
+	Email   string `json:"email" binding:"omitempty,email"`
 }
-func (h *Handler) DeleteTeacher(c *gin.Context) {
-	teacherID, err := strconv.Atoi(c.Param("teacherID"))
-	if err != nil {
-		log.Println("client error - bad teacherID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
-		return
-	}
+
+func (h *handler) UpdateTeacher(c *gin.Context) {
 	var teacher models.Teacher
-	result := h.DB.First(&teacher, teacherID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+
+	if err := h.DB.Where("id = ?", c.Param("teacherID")).First(&teacher).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a teacher:", err)
+			helpers.NotFound(c, "teacher")
+			return
+		}
+		log.Println("getting a teacher:", err)
+		helpers.InternalServerError(c)
 		return
 	}
-	h.DB.Delete(&teacher, teacherID)
+
+	var teacherData teacherDataForUpdate
+
+	if err := c.ShouldBindJSON(&teacherData); err != nil {
+		log.Println("binding teacher data:", err)
+		helpers.UnprocessableEntity(c, err)
+		return
+	}
+
+	if err := h.DB.Model(&teacher).Updates(teacherData).Error; err != nil {
+		log.Println("updating teacher data in DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, teacher)
+}
+
+func (h *handler) DeleteTeacher(c *gin.Context) {
+	var teacher models.Teacher
+
+	if err := h.DB.Where("id = ?", c.Param("teacherID")).First(&teacher).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a teacher:", err)
+			helpers.NotFound(c, "teacher")
+			return
+		}
+		log.Println("getting a teacher:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	if err := h.DB.Delete(&teacher).Error; err != nil {
+		log.Println("deleting teacher data from DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
 	c.JSON(http.StatusOK, teacher)
 }

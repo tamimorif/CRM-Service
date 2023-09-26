@@ -2,96 +2,115 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/softclub-go-0-0/tamim-crm-service/pkg/models"
+	"github.com/google/uuid"
+	"github.com/paraparadox/datetime"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
+	"github.com/softclub-go-0-0/crm-service/pkg/models"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"strconv"
 )
 
-func (h *Handler) GetAllCourses(c *gin.Context) {
-	var courses []models.Course
-	result := h.DB.Find(&courses)
+func (h *handler) GetAllGroups(c *gin.Context) {
+	var groups []models.Group
+	result := h.DB.Find(&groups)
 	if result.Error != nil {
-		log.Println("DB error - cannot find courses:", result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+		log.Println("DB error - cannot find groups:", result.Error)
+		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, courses)
+	c.JSON(http.StatusOK, groups)
 }
-func (h *Handler) CreateCourse(c *gin.Context) {
-	var course models.Course
-	err := c.ShouldBindJSON(&course)
-	if err != nil {
-		log.Fatal("Creating teacher:", err)
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-			"message": "validation error",
-			"err":     err.Error(),
-		})
-		return
-	}
-	h.DB.Create(&course)
-	c.JSON(http.StatusCreated, course)
-}
-func (h *Handler) GetOneCourse(c *gin.Context) {
-	courseID, err := strconv.Atoi(c.Param("courseID"))
-	if err != nil {
-		log.Println("client error - bad courseID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+
+func (h *handler) CreateGroup(c *gin.Context) {
+	var group models.Group
+
+	if err := c.ShouldBindJSON(&group); err != nil {
+		log.Println("binding group data:", err)
+		helpers.UnprocessableEntity(c, err)
 		return
 	}
 
-	var course models.Course
-	result := h.DB.First(&course, courseID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+	if err := h.DB.Create(&group).Error; err != nil {
+		log.Println("inserting group data to DB:", err)
+		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, course)
+	c.JSON(http.StatusCreated, group)
 }
-func (h *Handler) UpdateCourse(c *gin.Context) {
-	var course models.Course
-	err := h.DB.Where("id = ?", c.Param("courseID")).First(&course).Error
-	if err != nil {
-		log.Println("getting a course:", err)
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"message": "There is no such course",
-		})
+
+func (h *handler) GetOneGroup(c *gin.Context) {
+	var group models.Group
+
+	if err := h.DB.First(&group, "id = ?", c.Param("groupID")).Error; err != nil {
+		log.Println("getting a group:", err)
+		helpers.NotFound(c, "group")
 		return
 	}
-	err = c.ShouldBindJSON(&course)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnprocessableEntity)
-		return
-	}
-	h.DB.Save(&course)
+
+	c.JSON(http.StatusOK, group)
 }
-func (h *Handler) DeleteCourse(c *gin.Context) {
-	courseID, err := strconv.Atoi(c.Param("courseID"))
-	if err != nil {
-		log.Println("client error - bad teacherID param:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal Server Error",
-		})
+
+type groupDataForUpdate struct {
+	CourseID    uuid.UUID     `json:"course_id"`
+	TeacherID   uuid.UUID     `json:"teacher_id"`
+	TimetableID uuid.UUID     `json:"timetable_id"`
+	Title       string        `json:"title" binding:"required"`
+	StartDate   datetime.Date `json:"start_date" binding:"required"`
+}
+
+func (h *handler) UpdateGroup(c *gin.Context) {
+	var group models.Group
+
+	if err := h.DB.Where("id = ?", c.Param("groupID")).First(&group).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a group:", err)
+			helpers.NotFound(c, "group")
+			return
+		}
+		log.Println("getting a group:", err)
+		helpers.InternalServerError(c)
 		return
 	}
-	var course models.Course
-	result := h.DB.First(&course, courseID)
-	if result.Error != nil {
-		log.Println("client error - cannot find teacher:", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Not Found",
-		})
+
+	var groupData groupDataForUpdate
+
+	if err := c.ShouldBindJSON(&groupData); err != nil {
+		log.Println("binding group data:", err)
+		helpers.UnprocessableEntity(c, err)
 		return
 	}
-	h.DB.Delete(&course, courseID)
-	c.JSON(http.StatusOK, course)
+
+	if err := h.DB.Model(&group).Updates(groupData).Error; err != nil {
+		log.Println("updating group data in DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, group)
+}
+
+func (h *handler) DeleteGroup(c *gin.Context) {
+	var group models.Group
+
+	if err := h.DB.Where("id = ?", c.Param("groupID")).First(&group).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("getting a group:", err)
+			helpers.NotFound(c, "group")
+			return
+		}
+		log.Println("getting a group:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	if err := h.DB.Delete(&group).Error; err != nil {
+		log.Println("deleting group data from DB:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, group)
 }
