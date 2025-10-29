@@ -32,6 +32,11 @@ func main() {
 
 	router := gin.Default()
 
+	// Health check endpoints (no auth required)
+	router.GET("/health", h.HealthCheck)
+	router.GET("/ready", h.ReadinessProbe)
+	router.GET("/live", h.LivenessProbe)
+
 	router.Use(middlewares.AuthMiddleware())
 
 	router.GET("/teachers", h.GetAllTeachers)
@@ -51,6 +56,9 @@ func main() {
 	router.GET("/timetables/:timetableID", h.GetOneTimetable)
 	router.PUT("/timetables/:timetableID", h.UpdateTimetable)
 	router.DELETE("/timetables/:timetableID", h.DeleteTimetable)
+
+	// Global students endpoint
+	router.GET("/students", h.GetAllStudentsGlobal)
 
 	groups := router.Group("/groups")
 	{

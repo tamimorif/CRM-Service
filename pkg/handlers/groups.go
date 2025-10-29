@@ -13,7 +13,7 @@ import (
 
 func (h *handler) GetAllGroups(c *gin.Context) {
 	var groups []models.Group
-	result := h.DB.Find(&groups)
+	result := h.DB.Preload("Course").Preload("Teacher").Preload("Timetable").Preload("Students").Find(&groups)
 	if result.Error != nil {
 		log.Println("DB error - cannot find groups:", result.Error)
 		helpers.InternalServerError(c)
@@ -44,7 +44,7 @@ func (h *handler) CreateGroup(c *gin.Context) {
 func (h *handler) GetOneGroup(c *gin.Context) {
 	var group models.Group
 
-	if err := h.DB.First(&group, "id = ?", c.Param("groupID")).Error; err != nil {
+	if err := h.DB.Preload("Course").Preload("Teacher").Preload("Timetable").Preload("Students").First(&group, "id = ?", c.Param("groupID")).Error; err != nil {
 		log.Println("getting a group:", err)
 		helpers.NotFound(c, "group")
 		return

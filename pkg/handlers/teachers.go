@@ -11,14 +11,48 @@ import (
 
 func (h *handler) GetAllTeachers(c *gin.Context) {
 	var teachers []models.Teacher
-	result := h.DB.Find(&teachers)
+	var totalCount int64
+
+	// Get pagination parameters
+	params := helpers.GetPaginationParams(c)
+
+	// Get sort parameters
+	sortBy := helpers.GetSortParams(c, "created_at")
+
+	// Get search parameter
+	search := helpers.GetSearchParam(c)
+
+	// Build query
+	query := h.DB.Model(&models.Teacher{})
+
+	// Apply search filter if provided
+	if search != "" {
+		query = query.Where("name ILIKE ? OR surname ILIKE ? OR phone ILIKE ? OR email ILIKE ?",
+			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+	}
+
+	// Get total count
+	if err := query.Count(&totalCount).Error; err != nil {
+		log.Println("DB error - cannot count teachers:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	// Apply pagination and sorting
+	result := query.
+		Order(sortBy).
+		Offset(params.Offset).
+		Limit(params.PageSize).
+		Preload("Groups").
+		Find(&teachers)
+
 	if result.Error != nil {
 		log.Println("DB error - cannot find teachers:", result.Error)
 		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, teachers)
+	helpers.PaginatedSuccessResponse(c, teachers, totalCount, params, "Teachers retrieved successfully")
 }
 
 func (h *handler) CreateTeacher(c *gin.Context) {
@@ -42,7 +76,7 @@ func (h *handler) CreateTeacher(c *gin.Context) {
 func (h *handler) GetOneTeacher(c *gin.Context) {
 	var teacher models.Teacher
 
-	if err := h.DB.First(&teacher, "id = ?", c.Param("teacherID")).Error; err != nil {
+	if err := h.DB.Preload("Groups").First(&teacher, "id = ?", c.Param("teacherID")).Error; err != nil {
 		log.Println("getting a teacher:", err)
 		helpers.NotFound(c, "teacher")
 		return

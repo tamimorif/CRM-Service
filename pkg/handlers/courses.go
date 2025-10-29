@@ -11,14 +11,47 @@ import (
 
 func (h *handler) GetAllCourses(c *gin.Context) {
 	var courses []models.Course
-	result := h.DB.Find(&courses)
+	var totalCount int64
+
+	// Get pagination parameters
+	params := helpers.GetPaginationParams(c)
+
+	// Get sort parameters
+	sortBy := helpers.GetSortParams(c, "created_at")
+
+	// Get search parameter
+	search := helpers.GetSearchParam(c)
+
+	// Build query
+	query := h.DB.Model(&models.Course{})
+
+	// Apply search filter if provided
+	if search != "" {
+		query = query.Where("title ILIKE ?", "%"+search+"%")
+	}
+
+	// Get total count
+	if err := query.Count(&totalCount).Error; err != nil {
+		log.Println("DB error - cannot count courses:", err)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	// Apply pagination and sorting
+	result := query.
+		Order(sortBy).
+		Offset(params.Offset).
+		Limit(params.PageSize).
+		Preload("Groups").
+		Find(&courses)
+
 	if result.Error != nil {
 		log.Println("DB error - cannot find courses:", result.Error)
 		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, courses)
+	helpers.PaginatedSuccessResponse(c, courses, totalCount, params, "Courses retrieved successfully")
 }
 
 func (h *handler) CreateCourse(c *gin.Context) {
@@ -30,19 +63,26 @@ func (h *handler) CreateCourse(c *gin.Context) {
 		return
 	}
 
+	// Check if course with same title already exists
+	var existingCourse models.Course
+	if err := h.DB.Where("title = ?", course.Title).First(&existingCourse).Error; err == nil {
+		helpers.Conflict(c, "Course with this title already exists")
+		return
+	}
+
 	if err := h.DB.Create(&course).Error; err != nil {
 		log.Println("inserting course data to DB:", err)
 		helpers.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusCreated, course)
+	helpers.CreatedResponse(c, course, "Course created successfully")
 }
 
 func (h *handler) GetOneCourse(c *gin.Context) {
 	var course models.Course
 
-	if err := h.DB.First(&course, "id = ?", c.Param("courseID")).Error; err != nil {
+	if err := h.DB.Preload("Groups").First(&course, "id = ?", c.Param("courseID")).Error; err != nil {
 		log.Println("getting a course:", err)
 		helpers.NotFound(c, "course")
 		return

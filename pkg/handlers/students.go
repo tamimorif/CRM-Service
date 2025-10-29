@@ -12,7 +12,26 @@ import (
 
 func (h *handler) GetAllStudents(c *gin.Context) {
 	var students []models.Student
-	result := h.DB.Find(&students)
+	query := h.DB
+
+	// If groupID is provided in URL, filter by group
+	if groupID := c.Param("groupID"); groupID != "" {
+		query = query.Where("group_id = ?", groupID)
+	}
+
+	result := query.Preload("Group").Find(&students)
+	if result.Error != nil {
+		log.Println("DB error - cannot find students:", result.Error)
+		helpers.InternalServerError(c)
+		return
+	}
+
+	c.JSON(http.StatusOK, students)
+}
+
+func (h *handler) GetAllStudentsGlobal(c *gin.Context) {
+	var students []models.Student
+	result := h.DB.Preload("Group").Find(&students)
 	if result.Error != nil {
 		log.Println("DB error - cannot find students:", result.Error)
 		helpers.InternalServerError(c)
@@ -53,7 +72,7 @@ func (h *handler) CreateStudent(c *gin.Context) {
 func (h *handler) GetOneStudent(c *gin.Context) {
 	var student models.Student
 
-	if err := h.DB.First(&student, "id = ?", c.Param("studentID")).Error; err != nil {
+	if err := h.DB.Preload("Group").First(&student, "id = ?", c.Param("studentID")).Error; err != nil {
 		log.Println("getting a student:", err)
 		helpers.NotFound(c, "student")
 		return
