@@ -30,7 +30,10 @@ func NewDocumentService(db *gorm.DB) *DocumentService {
 	baseURL := "http://localhost:8080" // Should come from config
 
 	// Ensure upload directory exists
-	os.MkdirAll(uploadPath, 0755)
+	if err := os.MkdirAll(uploadPath, 0755); err != nil {
+		// Log error but don't fail initialization
+		fmt.Printf("Warning: failed to create upload directory: %v\n", err)
+	}
 
 	return &DocumentService{
 		db:         db,
@@ -54,7 +57,9 @@ func (s *DocumentService) Upload(ctx context.Context, req dto.UploadDocumentRequ
 
 	// Create subdirectory based on type
 	typeDir := filepath.Join(s.uploadPath, string(req.Type))
-	os.MkdirAll(typeDir, 0755)
+	if err := os.MkdirAll(typeDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create upload directory: %w", err)
+	}
 
 	// Full file path
 	filePath := filepath.Join(typeDir, uniqueFilename)

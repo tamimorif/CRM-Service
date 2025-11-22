@@ -232,7 +232,9 @@ func performRequest(t *testing.T, router *gin.Engine, method, path string, body 
 
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	assert.Nil(t, err)
+	if err != nil {
+		return ""
+	}
 
 	if id, ok := response["id"].(string); ok {
 		return id

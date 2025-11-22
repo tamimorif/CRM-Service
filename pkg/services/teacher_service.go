@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/softclub-go-0-0/crm-service/pkg/dto"
 	"github.com/softclub-go-0-0/crm-service/pkg/errors"
 	"github.com/softclub-go-0-0/crm-service/pkg/logger"
@@ -169,10 +168,4 @@ func (s *teacherService) toResponse(t *models.Teacher) *dto.TeacherResponse {
 		UpdatedAt: t.UpdatedAt,
 		Groups:    groups,
 	}
-}
-
-// Helper to parse UUID string safely
-func parseUUID(id string) uuid.UUID {
-	uid, _ := uuid.Parse(id)
-	return uid
 }

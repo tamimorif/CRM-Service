@@ -104,7 +104,9 @@ func timeToMinutes(timeStr string) int {
 	}
 	hours := 0
 	minutes := 0
-	fmt.Sscanf(timeStr, "%d:%d", &hours, &minutes)
+	if _, err := fmt.Sscanf(timeStr, "%d:%d", &hours, &minutes); err != nil {
+		return 0
+	}
 	return hours*60 + minutes
 }
 
