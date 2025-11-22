@@ -1,67 +1,37 @@
 package helpers
 
 import (
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/softclub-go-0-0/crm-service/pkg/dto"
 )
 
-type PaginationParams struct {
-	Page     int
-	PageSize int
-	Offset   int
-}
-
-type PaginatedResponse struct {
-	Success    bool        `json:"success"`
-	Message    string      `json:"message"`
-	Data       interface{} `json:"data"`
-	Pagination Pagination  `json:"pagination"`
-}
-
-type Pagination struct {
-	Page       int   `json:"page"`
-	PageSize   int   `json:"page_size"`
-	TotalPages int   `json:"total_pages"`
-	TotalCount int64 `json:"total_count"`
-	HasNext    bool  `json:"has_next"`
-	HasPrev    bool  `json:"has_prev"`
-}
-
 // GetPaginationParams extracts pagination parameters from query string
-func GetPaginationParams(c *gin.Context) PaginationParams {
+func GetPaginationParams(c *gin.Context) dto.PaginationRequest {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	search := c.Query("search")
+	sort := c.DefaultQuery("sort", "created_at")
+	order := c.DefaultQuery("order", "desc")
 
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 || pageSize > 100 {
-		pageSize = 10
-	}
-
-	offset := (page - 1) * pageSize
-
-	return PaginationParams{
+	req := dto.PaginationRequest{
 		Page:     page,
 		PageSize: pageSize,
-		Offset:   offset,
+		Search:   search,
+		SortBy:   sort,
+		Order:    order,
 	}
+
+	req.SetDefaults()
+	return req
 }
 
 // PaginatedSuccessResponse sends a paginated response
-func PaginatedSuccessResponse(c *gin.Context, data interface{}, totalCount int64, params PaginationParams, message string) {
-	totalPages := int((totalCount + int64(params.PageSize) - 1) / int64(params.PageSize))
+func PaginatedSuccessResponse(c *gin.Context, data interface{}, totalCount int64, req dto.PaginationRequest, message string) {
+	pagination := dto.NewPaginationMetadata(req.Page, req.PageSize, totalCount)
 
-	pagination := Pagination{
-		Page:       params.Page,
-		PageSize:   params.PageSize,
-		TotalPages: totalPages,
-		TotalCount: totalCount,
-		HasNext:    params.Page < totalPages,
-		HasPrev:    params.Page > 1,
-	}
-
-	c.JSON(200, PaginatedResponse{
+	c.JSON(200, dto.PaginatedResponse{
 		Success:    true,
 		Message:    message,
 		Data:       data,
@@ -70,6 +40,7 @@ func PaginatedSuccessResponse(c *gin.Context, data interface{}, totalCount int64
 }
 
 // GetSortParams extracts sort parameters from query string
+// Deprecated: Use GetPaginationParams instead
 func GetSortParams(c *gin.Context, defaultSort string) string {
 	sort := c.DefaultQuery("sort", defaultSort)
 	order := c.DefaultQuery("order", "asc")
@@ -82,6 +53,7 @@ func GetSortParams(c *gin.Context, defaultSort string) string {
 }
 
 // GetSearchParam extracts search parameter from query string
+// Deprecated: Use GetPaginationParams instead
 func GetSearchParam(c *gin.Context) string {
 	return c.Query("search")
 }

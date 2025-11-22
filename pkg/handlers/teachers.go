@@ -1,147 +1,139 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
-	"github.com/softclub-go-0-0/crm-service/pkg/models"
-	"gorm.io/gorm"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/softclub-go-0-0/crm-service/pkg/dto"
+	"github.com/softclub-go-0-0/crm-service/pkg/errors"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
 )
 
-func (h *handler) GetAllTeachers(c *gin.Context) {
-	var teachers []models.Teacher
-	var totalCount int64
-
+// GetAllTeachers godoc
+// @Summary      Get all teachers
+// @Description  Get a list of all teachers with pagination and search
+// @Tags         teachers
+// @Accept       json
+// @Produce      json
+// @Param        page      query     int     false  "Page number"
+// @Param        page_size query     int     false  "Page size"
+// @Param        search    query     string  false  "Search term"
+// @Success      200       {object}  dto.PaginatedResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /teachers [get]
+func (h *Handler) GetAllTeachers(c *gin.Context) {
 	// Get pagination parameters
-	params := helpers.GetPaginationParams(c)
+	pagination := helpers.GetPaginationParams(c)
+	// Search is already in pagination params now
 
-	// Get sort parameters
-	sortBy := helpers.GetSortParams(c, "created_at")
-
-	// Get search parameter
-	search := helpers.GetSearchParam(c)
-
-	// Build query
-	query := h.DB.Model(&models.Teacher{})
-
-	// Apply search filter if provided
-	if search != "" {
-		query = query.Where("name ILIKE ? OR surname ILIKE ? OR phone ILIKE ? OR email ILIKE ?",
-			"%"+search+"%", "%"+search+"%", "%"+search+"%", "%"+search+"%")
-	}
-
-	// Get total count
-	if err := query.Count(&totalCount).Error; err != nil {
-		log.Println("DB error - cannot count teachers:", err)
-		helpers.InternalServerError(c)
+	response, err := h.teacherService.GetAll(c.Request.Context(), pagination)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	// Apply pagination and sorting
-	result := query.
-		Order(sortBy).
-		Offset(params.Offset).
-		Limit(params.PageSize).
-		Preload("Groups").
-		Find(&teachers)
-
-	if result.Error != nil {
-		log.Println("DB error - cannot find teachers:", result.Error)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	helpers.PaginatedSuccessResponse(c, teachers, totalCount, params, "Teachers retrieved successfully")
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) CreateTeacher(c *gin.Context) {
-	var teacher models.Teacher
+// CreateTeacher godoc
+// @Summary      Create a new teacher
+// @Description  Create a new teacher with the provided details
+// @Tags         teachers
+// @Accept       json
+// @Produce      json
+// @Param        teacher  body      dto.CreateTeacherRequest  true  "Teacher Request"
+// @Success      201      {object}  dto.TeacherResponse
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /teachers [post]
+func (h *Handler) CreateTeacher(c *gin.Context) {
+	var req dto.CreateTeacherRequest
 
-	if err := c.ShouldBindJSON(&teacher); err != nil {
-		log.Println("binding teacher data:", err)
-		helpers.UnprocessableEntity(c, err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
 		return
 	}
 
-	if err := h.DB.Create(&teacher).Error; err != nil {
-		log.Println("inserting teacher data to DB:", err)
-		helpers.InternalServerError(c)
+	response, err := h.teacherService.Create(c.Request.Context(), req)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, teacher)
+	c.JSON(http.StatusCreated, response)
 }
 
-func (h *handler) GetOneTeacher(c *gin.Context) {
-	var teacher models.Teacher
-
-	if err := h.DB.Preload("Groups").First(&teacher, "id = ?", c.Param("teacherID")).Error; err != nil {
-		log.Println("getting a teacher:", err)
-		helpers.NotFound(c, "teacher")
+// GetOneTeacher godoc
+// @Summary      Get a teacher by ID
+// @Description  Get detailed information about a specific teacher
+// @Tags         teachers
+// @Accept       json
+// @Produce      json
+// @Param        teacherID  path      string  true  "Teacher ID"
+// @Success      200        {object}  dto.TeacherResponse
+// @Failure      404        {object}  dto.ErrorResponse
+// @Failure      500        {object}  dto.ErrorResponse
+// @Router       /teachers/{teacherID} [get]
+func (h *Handler) GetOneTeacher(c *gin.Context) {
+	id := c.Param("teacherID")
+	response, err := h.teacherService.GetByID(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, teacher)
+	c.JSON(http.StatusOK, response)
 }
 
-type teacherDataForUpdate struct {
-	Name    string `json:"name" binding:"required,alphaunicode"`
-	Surname string `json:"surname" binding:"required,alphaunicode"`
-	Phone   string `json:"phone" binding:"required,len=12,numeric"`
-	Email   string `json:"email" binding:"omitempty,email"`
+// UpdateTeacher godoc
+// @Summary      Update a teacher
+// @Description  Update an existing teacher's information
+// @Tags         teachers
+// @Accept       json
+// @Produce      json
+// @Param        teacherID  path      string                    true  "Teacher ID"
+// @Param        teacher    body      dto.UpdateTeacherRequest  true  "Teacher Update Request"
+// @Success      200        {object}  dto.TeacherResponse
+// @Failure      400        {object}  dto.ErrorResponse
+// @Failure      404        {object}  dto.ErrorResponse
+// @Failure      500        {object}  dto.ErrorResponse
+// @Router       /teachers/{teacherID} [put]
+func (h *Handler) UpdateTeacher(c *gin.Context) {
+	id := c.Param("teacherID")
+	var req dto.UpdateTeacherRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
+		return
+	}
+
+	response, err := h.teacherService.Update(c.Request.Context(), id, req)
+	if err != nil {
+		errors.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) UpdateTeacher(c *gin.Context) {
-	var teacher models.Teacher
-
-	if err := h.DB.Where("id = ?", c.Param("teacherID")).First(&teacher).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a teacher:", err)
-			helpers.NotFound(c, "teacher")
-			return
-		}
-		log.Println("getting a teacher:", err)
-		helpers.InternalServerError(c)
+// DeleteTeacher godoc
+// @Summary      Delete a teacher
+// @Description  Soft delete a teacher by ID
+// @Tags         teachers
+// @Accept       json
+// @Produce      json
+// @Param        teacherID  path      string  true  "Teacher ID"
+// @Success      200        {object}  map[string]interface{}
+// @Failure      404        {object}  dto.ErrorResponse
+// @Failure      500        {object}  dto.ErrorResponse
+// @Router       /teachers/{teacherID} [delete]
+func (h *Handler) DeleteTeacher(c *gin.Context) {
+	id := c.Param("teacherID")
+	err := h.teacherService.Delete(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	var teacherData teacherDataForUpdate
-
-	if err := c.ShouldBindJSON(&teacherData); err != nil {
-		log.Println("binding teacher data:", err)
-		helpers.UnprocessableEntity(c, err)
-		return
-	}
-
-	if err := h.DB.Model(&teacher).Updates(teacherData).Error; err != nil {
-		log.Println("updating teacher data in DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, teacher)
-}
-
-func (h *handler) DeleteTeacher(c *gin.Context) {
-	var teacher models.Teacher
-
-	if err := h.DB.Where("id = ?", c.Param("teacherID")).First(&teacher).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a teacher:", err)
-			helpers.NotFound(c, "teacher")
-			return
-		}
-		log.Println("getting a teacher:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	if err := h.DB.Delete(&teacher).Error; err != nil {
-		log.Println("deleting teacher data from DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, teacher)
+	c.Status(http.StatusOK)
 }

@@ -1,113 +1,138 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/paraparadox/datetime"
-	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
-	"github.com/softclub-go-0-0/crm-service/pkg/models"
-	"gorm.io/gorm"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/softclub-go-0-0/crm-service/pkg/dto"
+	"github.com/softclub-go-0-0/crm-service/pkg/errors"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
 )
 
-func (h *handler) GetAllTimetables(c *gin.Context) {
-	var timetables []models.Timetable
-	result := h.DB.Find(&timetables)
-	if result.Error != nil {
-		log.Println("DB error - cannot find timetables:", result.Error)
-		helpers.InternalServerError(c)
+// GetAllTimetables godoc
+// @Summary      Get all timetables
+// @Description  Get a list of all timetables with pagination and search
+// @Tags         timetables
+// @Accept       json
+// @Produce      json
+// @Param        page      query     int     false  "Page number"
+// @Param        page_size query     int     false  "Page size"
+// @Param        search    query     string  false  "Search term"
+// @Success      200       {object}  dto.PaginatedResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /timetables [get]
+func (h *Handler) GetAllTimetables(c *gin.Context) {
+	pagination := helpers.GetPaginationParams(c)
+	// Search is already in pagination params now
+
+	response, err := h.timetableService.GetAll(c.Request.Context(), pagination)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, timetables)
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) CreateTimetable(c *gin.Context) {
-	var timetable models.Timetable
+// CreateTimetable godoc
+// @Summary      Create a new timetable
+// @Description  Create a new timetable with the provided details
+// @Tags         timetables
+// @Accept       json
+// @Produce      json
+// @Param        timetable  body      dto.CreateTimetableRequest  true  "Timetable Request"
+// @Success      201        {object}  dto.TimetableResponse
+// @Failure      400        {object}  dto.ErrorResponse
+// @Failure      500        {object}  dto.ErrorResponse
+// @Router       /timetables [post]
+func (h *Handler) CreateTimetable(c *gin.Context) {
+	var req dto.CreateTimetableRequest
 
-	if err := c.ShouldBindJSON(&timetable); err != nil {
-		log.Println("binding timetable data:", err)
-		helpers.UnprocessableEntity(c, err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
 		return
 	}
 
-	if err := h.DB.Create(&timetable).Error; err != nil {
-		log.Println("inserting timetable data to DB:", err)
-		helpers.InternalServerError(c)
+	response, err := h.timetableService.Create(c.Request.Context(), req)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, timetable)
+	c.JSON(http.StatusCreated, response)
 }
 
-func (h *handler) GetOneTimetable(c *gin.Context) {
-	var timetable models.Timetable
-
-	if err := h.DB.First(&timetable, "id = ?", c.Param("timetableID")).Error; err != nil {
-		log.Println("getting a timetable:", err)
-		helpers.NotFound(c, "timetable")
+// GetOneTimetable godoc
+// @Summary      Get a timetable by ID
+// @Description  Get detailed information about a specific timetable
+// @Tags         timetables
+// @Accept       json
+// @Produce      json
+// @Param        timetableID  path      string  true  "Timetable ID"
+// @Success      200          {object}  dto.TimetableResponse
+// @Failure      404          {object}  dto.ErrorResponse
+// @Failure      500          {object}  dto.ErrorResponse
+// @Router       /timetables/{timetableID} [get]
+func (h *Handler) GetOneTimetable(c *gin.Context) {
+	id := c.Param("timetableID")
+	response, err := h.timetableService.GetByID(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, timetable)
+	c.JSON(http.StatusOK, response)
 }
 
-type timetableDataForUpdate struct {
-	Classroom string        `json:"classroom" binding:"required"`
-	Start     datetime.Time `json:"start" binding:"required"`
-	Finish    datetime.Time `json:"finish" binding:"required"`
+// UpdateTimetable godoc
+// @Summary      Update a timetable
+// @Description  Update an existing timetable's information
+// @Tags         timetables
+// @Accept       json
+// @Produce      json
+// @Param        timetableID  path      string                      true  "Timetable ID"
+// @Param        timetable    body      dto.UpdateTimetableRequest  true  "Timetable Update Request"
+// @Success      200          {object}  dto.TimetableResponse
+// @Failure      400          {object}  dto.ErrorResponse
+// @Failure      404          {object}  dto.ErrorResponse
+// @Failure      500          {object}  dto.ErrorResponse
+// @Router       /timetables/{timetableID} [put]
+func (h *Handler) UpdateTimetable(c *gin.Context) {
+	id := c.Param("timetableID")
+	var req dto.UpdateTimetableRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
+		return
+	}
+
+	response, err := h.timetableService.Update(c.Request.Context(), id, req)
+	if err != nil {
+		errors.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) UpdateTimetable(c *gin.Context) {
-	var timetable models.Timetable
-
-	if err := h.DB.Where("id = ?", c.Param("timetableID")).First(&timetable).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a timetable:", err)
-			helpers.NotFound(c, "timetable")
-			return
-		}
-		log.Println("getting a timetable:", err)
-		helpers.InternalServerError(c)
+// DeleteTimetable godoc
+// @Summary      Delete a timetable
+// @Description  Soft delete a timetable by ID
+// @Tags         timetables
+// @Accept       json
+// @Produce      json
+// @Param        timetableID  path      string  true  "Timetable ID"
+// @Success      200          {object}  map[string]interface{}
+// @Failure      404          {object}  dto.ErrorResponse
+// @Failure      500          {object}  dto.ErrorResponse
+// @Router       /timetables/{timetableID} [delete]
+func (h *Handler) DeleteTimetable(c *gin.Context) {
+	id := c.Param("timetableID")
+	err := h.timetableService.Delete(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	var timetableData timetableDataForUpdate
-
-	if err := c.ShouldBindJSON(&timetableData); err != nil {
-		log.Println("binding timetable data:", err)
-		helpers.UnprocessableEntity(c, err)
-		return
-	}
-
-	if err := h.DB.Model(&timetable).Updates(timetableData).Error; err != nil {
-		log.Println("updating timetable data in DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, timetable)
-}
-
-func (h *handler) DeleteTimetable(c *gin.Context) {
-	var timetable models.Timetable
-
-	if err := h.DB.Where("id = ?", c.Param("timetableID")).First(&timetable).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a timetable:", err)
-			helpers.NotFound(c, "timetable")
-			return
-		}
-		log.Println("getting a timetable:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	if err := h.DB.Delete(&timetable).Error; err != nil {
-		log.Println("deleting timetable data from DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, timetable)
+	c.Status(http.StatusOK)
 }

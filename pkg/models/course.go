@@ -1,16 +1,17 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Course struct {
 	ID         uuid.UUID      `json:"id" gorm:"primarykey"`
 	Title      string         `json:"title" binding:"required"`
-	MonthlyFee uint           `json:"monthly_fee" binding:"omitempty,number"`
-	Duration   uint           `json:"duration" binding:"omitempty,number"`
+	MonthlyFee float64        `json:"monthly_fee" binding:"omitempty,number"`
+	Duration   int            `json:"duration" binding:"omitempty,number"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`

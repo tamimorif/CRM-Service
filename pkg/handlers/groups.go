@@ -1,116 +1,138 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/paraparadox/datetime"
-	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
-	"github.com/softclub-go-0-0/crm-service/pkg/models"
-	"gorm.io/gorm"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/softclub-go-0-0/crm-service/pkg/dto"
+	"github.com/softclub-go-0-0/crm-service/pkg/errors"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
 )
 
-func (h *handler) GetAllGroups(c *gin.Context) {
-	var groups []models.Group
-	result := h.DB.Preload("Course").Preload("Teacher").Preload("Timetable").Preload("Students").Find(&groups)
-	if result.Error != nil {
-		log.Println("DB error - cannot find groups:", result.Error)
-		helpers.InternalServerError(c)
+// GetAllGroups godoc
+// @Summary      Get all groups
+// @Description  Get a list of all groups with pagination and search
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        page      query     int     false  "Page number"
+// @Param        page_size query     int     false  "Page size"
+// @Param        search    query     string  false  "Search term"
+// @Success      200       {object}  dto.PaginatedResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /groups [get]
+func (h *Handler) GetAllGroups(c *gin.Context) {
+	pagination := helpers.GetPaginationParams(c)
+	// Search is already in pagination params now
+
+	response, err := h.groupService.GetAll(c.Request.Context(), pagination)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, groups)
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) CreateGroup(c *gin.Context) {
-	var group models.Group
+// CreateGroup godoc
+// @Summary      Create a new group
+// @Description  Create a new group with the provided details
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        group    body      dto.CreateGroupRequest  true  "Group Request"
+// @Success      201      {object}  dto.GroupResponse
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /groups [post]
+func (h *Handler) CreateGroup(c *gin.Context) {
+	var req dto.CreateGroupRequest
 
-	if err := c.ShouldBindJSON(&group); err != nil {
-		log.Println("binding group data:", err)
-		helpers.UnprocessableEntity(c, err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
 		return
 	}
 
-	if err := h.DB.Create(&group).Error; err != nil {
-		log.Println("inserting group data to DB:", err)
-		helpers.InternalServerError(c)
+	response, err := h.groupService.Create(c.Request.Context(), req)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, group)
+	c.JSON(http.StatusCreated, response)
 }
 
-func (h *handler) GetOneGroup(c *gin.Context) {
-	var group models.Group
-
-	if err := h.DB.Preload("Course").Preload("Teacher").Preload("Timetable").Preload("Students").First(&group, "id = ?", c.Param("groupID")).Error; err != nil {
-		log.Println("getting a group:", err)
-		helpers.NotFound(c, "group")
+// GetOneGroup godoc
+// @Summary      Get a group by ID
+// @Description  Get detailed information about a specific group
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        groupID  path      string  true  "Group ID"
+// @Success      200      {object}  dto.GroupResponse
+// @Failure      404      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /groups/{groupID} [get]
+func (h *Handler) GetOneGroup(c *gin.Context) {
+	id := c.Param("groupID")
+	response, err := h.groupService.GetByID(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, group)
+	c.JSON(http.StatusOK, response)
 }
 
-type groupDataForUpdate struct {
-	CourseID    uuid.UUID     `json:"course_id"`
-	TeacherID   uuid.UUID     `json:"teacher_id"`
-	TimetableID uuid.UUID     `json:"timetable_id"`
-	Title       string        `json:"title" binding:"required"`
-	StartDate   datetime.Date `json:"start_date" binding:"required"`
+// UpdateGroup godoc
+// @Summary      Update a group
+// @Description  Update an existing group's information
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        groupID  path      string                  true  "Group ID"
+// @Param        group    body      dto.UpdateGroupRequest  true  "Group Update Request"
+// @Success      200      {object}  dto.GroupResponse
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      404      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /groups/{groupID} [put]
+func (h *Handler) UpdateGroup(c *gin.Context) {
+	id := c.Param("groupID")
+	var req dto.UpdateGroupRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
+		return
+	}
+
+	response, err := h.groupService.Update(c.Request.Context(), id, req)
+	if err != nil {
+		errors.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) UpdateGroup(c *gin.Context) {
-	var group models.Group
-
-	if err := h.DB.Where("id = ?", c.Param("groupID")).First(&group).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a group:", err)
-			helpers.NotFound(c, "group")
-			return
-		}
-		log.Println("getting a group:", err)
-		helpers.InternalServerError(c)
+// DeleteGroup godoc
+// @Summary      Delete a group
+// @Description  Soft delete a group by ID
+// @Tags         groups
+// @Accept       json
+// @Produce      json
+// @Param        groupID  path      string  true  "Group ID"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      404      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /groups/{groupID} [delete]
+func (h *Handler) DeleteGroup(c *gin.Context) {
+	id := c.Param("groupID")
+	err := h.groupService.Delete(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	var groupData groupDataForUpdate
-
-	if err := c.ShouldBindJSON(&groupData); err != nil {
-		log.Println("binding group data:", err)
-		helpers.UnprocessableEntity(c, err)
-		return
-	}
-
-	if err := h.DB.Model(&group).Updates(groupData).Error; err != nil {
-		log.Println("updating group data in DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, group)
-}
-
-func (h *handler) DeleteGroup(c *gin.Context) {
-	var group models.Group
-
-	if err := h.DB.Where("id = ?", c.Param("groupID")).First(&group).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a group:", err)
-			helpers.NotFound(c, "group")
-			return
-		}
-		log.Println("getting a group:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	if err := h.DB.Delete(&group).Error; err != nil {
-		log.Println("deleting group data from DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, group)
+	c.Status(http.StatusOK)
 }

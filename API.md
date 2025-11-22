@@ -1,318 +1,312 @@
 # CRM Service API Documentation
 
-Base URL: `http://localhost:8080`
+Complete API reference for the CRM Service with 67+ endpoints across 10 feature phases.
+
+## Base URL
+```
+http://localhost:8080/api/v1
+```
 
 ## Authentication
 
-All endpoints (except health checks) require authentication via token in the header:
+All endpoints require API Key authentication via header:
 ```
-X-Auth-Token: your_token_here
+X-API-Key: your-api-key-here
 ```
-or
-```
-Authorization: Bearer your_token_here
-```
+
+Some endpoints also require role-based access control (RBAC).
 
 ---
 
-## Health Check Endpoints
+## 📚 Core Entities
 
-### GET /health
-Get comprehensive health status of the application
+### Teachers
+- `POST /teachers` - Create teacher
+- `GET /teachers` - List all teachers (paginated)
+- `GET /teachers/:id` - Get teacher details
+- `PUT /teachers/:id` - Update teacher
+- `DELETE /teachers/:id` - Delete teacher
 
-**Response:**
-```json
-{
-  "status": "healthy",
-  "version": "1.0.0",
-  "timestamp": "2025-10-29T10:00:00Z",
-  "uptime": "1h30m20s",
-  "database": {
-    "status": "healthy",
-    "response_time_ms": 5
-  },
-  "system": {
-    "go_version": "go1.20",
-    "num_goroutine": 10,
-    "num_cpu": 8
-  },
-  "services": {
-    "auth_service": "healthy"
-  }
-}
-```
+### Courses
+- `POST /courses` - Create course
+- `GET /courses` - List all courses (paginated)
+- `GET /courses/:id` - Get course details
+- `PUT /courses/:id` - Update course
+- `DELETE /courses/:id` - Delete course
 
-### GET /ready
-Readiness probe for Kubernetes
+### Students
+- `POST /students` - Create student
+- `GET /students` - List all students (paginated)
+- `GET /students/:id` - Get student details
+- `PUT /students/:id` - Update student
+- `DELETE /students/:id` - Delete student
 
-### GET /live
-Liveness probe for Kubernetes
+### Groups
+- `POST /groups` - Create group
+- `GET /groups` - List all groups (paginated)
+- `GET /groups/:id` - Get group details
+- `PUT /groups/:id` - Update group
+- `DELETE /groups/:id` - Delete group
 
 ---
 
-## Teachers
+## 📅 Scheduling & Attendance
 
-### GET /teachers
-Get all teachers with pagination, search, and sorting
+### Timetables
+- `POST /timetables` - Create timetable
+- `GET /timetables` - List all timetables
+- `GET /timetables/:id` - Get timetable details
+- `PUT /timetables/:id` - Update timetable
+- `DELETE /timetables/:id` - Delete timetable
 
-**Query Parameters:**
-- `page` (int, default: 1) - Page number
-- `page_size` (int, default: 10, max: 100) - Items per page
-- `sort` (string, default: "created_at") - Sort field
-- `order` (string, default: "asc") - Sort order (asc/desc)
-- `search` (string) - Search in name, surname, phone, email
-
-**Example:** `/teachers?page=1&page_size=10&search=john&sort=name&order=asc`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Teachers retrieved successfully",
-  "data": [
-    {
-      "id": "uuid",
-      "name": "John",
-      "surname": "Doe",
-      "phone": "992900123456",
-      "email": "john@example.com",
-      "created_at": "2025-10-29T10:00:00Z",
-      "updated_at": "2025-10-29T10:00:00Z",
-      "groups": []
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "page_size": 10,
-    "total_pages": 5,
-    "total_count": 47,
-    "has_next": true,
-    "has_prev": false
-  }
-}
-```
-
-### POST /teachers
-Create a new teacher
-
-**Request Body:**
-```json
-{
-  "name": "John",
-  "surname": "Doe",
-  "phone": "992900123456",
-  "email": "john@example.com"
-}
-```
-
-### GET /teachers/:teacherID
-Get a specific teacher by ID
-
-### PUT /teachers/:teacherID
-Update a teacher
-
-**Request Body:**
-```json
-{
-  "name": "John",
-  "surname": "Doe",
-  "phone": "992900123456",
-  "email": "john@example.com"
-}
-```
-
-### DELETE /teachers/:teacherID
-Delete a teacher
+### Attendance
+- `POST /attendance` - Mark attendance
+- `GET /attendance` - List attendance records
+- `GET /attendance/:id` - Get attendance details
+- `GET /attendance/student/:studentID` - Get student attendance
+- `GET /attendance/group/:groupID` - Get group attendance
+- `PUT /attendance/:id` - Update attendance
+- `DELETE /attendance/:id` - Delete attendance
 
 ---
 
-## Courses
+## 📊 Grades & Exams
 
-### GET /courses
-Get all courses with pagination and search
+### Grades
+- `POST /grades` - Create grade
+- `GET /grades` - List all grades
+- `GET /grades/:id` - Get grade details
+- `GET /grades/student/:studentID` - Get student grades
+- `PUT /grades/:id` - Update grade
+- `DELETE /grades/:id` - Delete grade
 
-**Query Parameters:**
-- `page`, `page_size`, `sort`, `order` - Same as teachers
-- `search` - Search in course title
-
-### POST /courses
-Create a new course
-
-**Request Body:**
-```json
-{
-  "title": "Web Development",
-  "monthly_fee": 1000,
-  "duration": 6
-}
-```
-
-### GET /courses/:courseID
-Get a specific course
-
-### PUT /courses/:courseID
-Update a course
-
-### DELETE /courses/:courseID
-Delete a course
+### Exams
+- `POST /exams` - Create exam
+- `GET /exams` - List all exams (paginated)
+- `GET /exams/:examID` - Get exam details
+- `GET /exams/course/:courseID` - Get exams by course
+- `GET /exams/group/:groupID` - Get exams by group
+- `PUT /exams/:examID` - Update exam
+- `POST /exams/:examID/results` - Submit exam result
+- `GET /exams/:examID/results` - Get all exam results
+- `GET /exams/student/:studentID/results` - Get student results
+- `GET /exams/:examID/statistics` - Get exam statistics
+- `DELETE /exams/:examID` - Delete exam
 
 ---
 
-## Timetables
+## 💰 Financial Management
 
-### GET /timetables
-Get all timetables
+### Payments
+- `POST /payments` - Create payment
+- `GET /payments` - List all payments (paginated)
+- `GET /payments/:id` - Get payment details
+- `GET /payments/student/:studentID` - Get student payments
+- `PUT /payments/:id` - Update payment
+- `DELETE /payments/:id` - Delete payment
 
-### POST /timetables
-Create a new timetable
-
-**Request Body:**
-```json
-{
-  "classroom": "Room 101",
-  "start": "09:00:00",
-  "finish": "11:00:00"
-}
-```
-
-### GET /timetables/:timetableID
-Get a specific timetable
-
-### PUT /timetables/:timetableID
-Update a timetable
-
-### DELETE /timetables/:timetableID
-Delete a timetable
+### Invoices
+- `POST /invoices` - Create invoice
+- `GET /invoices` - List all invoices (paginated)
+- `GET /invoices/:id` - Get invoice details
+- `GET /invoices/student/:studentID` - Get student invoices
+- `PUT /invoices/:id` - Update invoice
+- `DELETE /invoices/:id` - Delete invoice
 
 ---
 
-## Groups
+## 🔔 Notifications
 
-### GET /groups
-Get all groups with related data (course, teacher, timetable, students)
+### Notifications
+- `POST /notifications` - Send notification
+- `GET /notifications` - List all notifications (paginated)
+- `GET /notifications/:id` - Get notification details
+- `GET /notifications/user/:userID` - Get user notifications
+- `PUT /notifications/:id/read` - Mark as read
+- `DELETE /notifications/:id` - Delete notification
 
-### POST /groups
-Create a new group
-
-**Request Body:**
-```json
-{
-  "course_id": "uuid",
-  "teacher_id": "uuid",
-  "timetable_id": "uuid",
-  "title": "Web Dev Group 1",
-  "start_date": "2025-11-01"
-}
-```
-
-### GET /groups/:groupID
-Get a specific group with all relations
-
-### PUT /groups/:groupID
-Update a group
-
-### DELETE /groups/:groupID
-Delete a group
+### Notification Templates
+- `POST /notification-templates` - Create template
+- `GET /notification-templates` - List all templates
+- `GET /notification-templates/:id` - Get template details
+- `PUT /notification-templates/:id` - Update template
+- `DELETE /notification-templates/:id` - Delete template
 
 ---
 
-## Students
+## 📄 Document Management
 
-### GET /students
-Get all students globally
+### Documents
+- `POST /documents` - Upload document
+- `GET /documents` - List all documents (paginated)
+- `GET /documents/:id` - Get document details
+- `GET /documents/:id/download` - Download document
+- `GET /documents/entity/:entityType/:entityID` - Get entity documents
+- `PUT /documents/:id` - Update document metadata
+- `PUT /documents/:id/approve` - Approve document
+- `PUT /documents/:id/reject` - Reject document
+- `DELETE /documents/:id` - Delete document
 
-### GET /groups/:groupID/students
-Get all students in a specific group
+---
 
-### POST /groups/:groupID/students
-Create a new student in a group
+## 💬 Communication Hub
 
-**Request Body:**
-```json
-{
-  "name": "Jane",
-  "surname": "Smith",
-  "phone": "992900654321",
-  "email": "jane@example.com"
-}
+### Messages
+- `POST /messages` - Send message
+- `GET /messages` - List all messages (paginated)
+- `GET /messages/:id` - Get message details
+- `GET /messages/inbox` - Get inbox messages
+- `GET /messages/sent` - Get sent messages
+- `PUT /messages/:id/read` - Mark as read
+- `DELETE /messages/:id` - Delete message
+
+---
+
+## 📈 Analytics & Reporting
+
+### Analytics
+- `GET /analytics/dashboard` - Get dashboard metrics
+- `GET /analytics/financial` - Get financial analytics
+- `GET /analytics/student-progress/:studentID` - Get student progress
+- `GET /analytics/attendance/:groupID` - Get attendance analytics
+
+---
+
+## 📅 Calendar & Events
+
+### Events
+- `POST /events` - Create event
+- `GET /events` - List all events (paginated)
+- `GET /events/:id` - Get event details
+- `GET /events/calendar` - Get calendar events (date range)
+- `PUT /events/:id` - Update event
+- `DELETE /events/:id` - Delete event
+
+---
+
+## 🎓 Enrollment & Admission
+
+### Applications
+- `POST /applications` - Submit application
+- `GET /applications` - List all applications (paginated)
+- `GET /applications/:applicationID` - Get application details
+- `GET /applications/course/:courseID` - Get applications by course
+- `GET /applications/status/:status` - Get applications by status
+- `PUT /applications/:applicationID` - Update application
+- `POST /applications/:applicationID/review` - Review application
+- `POST /applications/:applicationID/enroll` - Enroll student
+- `DELETE /applications/:applicationID` - Delete application
+
+---
+
+## 🏠 Student & Teacher Portals
+
+### Portals
+- `GET /portal/student/:studentID` - Get student dashboard
+- `GET /portal/teacher/:teacherID` - Get teacher dashboard
+
+---
+
+## 👤 User Management
+
+### Users
+- `POST /users` - Create user
+- `GET /users` - List all users (paginated)
+- `GET /users/:id` - Get user details
+- `PUT /users/:id` - Update user
+- `DELETE /users/:id` - Delete user
+
+### Sessions
+- `POST /auth/login` - Login
+- `POST /auth/logout` - Logout
+- `GET /auth/sessions` - List user sessions
+- `DELETE /auth/sessions/:id` - Revoke session
+
+---
+
+## 🔍 Audit Logs
+
+### Audit
+- `GET /audit-logs` - Get audit logs (Admin only)
+
+---
+
+## Example Requests
+
+### Create a Student
+```bash
+curl -X POST http://localhost:8080/api/v1/students \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890"
+  }'
 ```
 
-### GET /groups/:groupID/students/:studentID
-Get a specific student
-
-### PUT /groups/:groupID/students/:studentID
-Update a student
-
-**Request Body:**
-```json
-{
-  "group_id": "uuid",
-  "name": "Jane",
-  "surname": "Smith",
-  "phone": "992900654321",
-  "email": "jane@example.com"
-}
+### Submit Exam Result
+```bash
+curl -X POST http://localhost:8080/api/v1/exams/{examID}/results \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student_id": "uuid-here",
+    "marks_obtained": 85,
+    "total_marks": 100,
+    "remarks": "Excellent performance"
+  }'
 ```
 
-### DELETE /groups/:groupID/students/:studentID
-Delete a student
+### Get Student Dashboard
+```bash
+curl -X GET http://localhost:8080/api/v1/portal/student/{studentID} \
+  -H "X-API-Key: your-api-key"
+```
 
 ---
 
 ## Error Responses
 
-All endpoints return structured error responses:
+All endpoints return standard error responses:
 
 ```json
 {
   "success": false,
-  "message": "Error message",
-  "errors": "Detailed error information",
-  "timestamp": "2025-10-29T10:00:00Z"
+  "message": "Error description",
+  "data": null
 }
 ```
 
-**Common HTTP Status Codes:**
-- 200 OK - Request successful
-- 201 Created - Resource created successfully
-- 400 Bad Request - Invalid request
-- 401 Unauthorized - Authentication required
-- 403 Forbidden - Insufficient permissions
-- 404 Not Found - Resource not found
-- 409 Conflict - Resource already exists
-- 422 Unprocessable Entity - Validation error
-- 500 Internal Server Error - Server error
+### HTTP Status Codes
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request
+- `401` - Unauthorized
+- `403` - Forbidden
+- `404` - Not Found
+- `500` - Internal Server Error
 
 ---
 
-## Development
+## Rate Limiting
 
-### Running with Docker
-```bash
-# Start all services
-docker-compose up -d
+Currently no rate limiting is implemented. Consider adding in production.
 
-# View logs
-docker-compose logs -f
+## Pagination
 
-# Stop services
-docker-compose down
+List endpoints support pagination via query parameters:
+- `page` - Page number (default: 1)
+- `page_size` - Items per page (default: 10)
+- `search` - Search term (optional)
+
+Response format:
+```json
+{
+  "data": [...],
+  "total": 100,
+  "page": 1,
+  "page_size": 10,
+  "total_pages": 10
+}
 ```
-
-### Running locally
-```bash
-# Install dependencies
-make deps
-
-# Run the application
-make run
-
-# Run with hot reload
-make dev
-
-# Run tests
-make test
-```
-
-### Environment Variables
-See `.env.example` for all required environment variables.

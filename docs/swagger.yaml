@@ -1,0 +1,1775 @@
+basePath: /
+definitions:
+  dto.APIResponse:
+    properties:
+      data: {}
+      errors: {}
+      message:
+        type: string
+      meta: {}
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  dto.AttendanceResponse:
+    properties:
+      created_at:
+        type: string
+      date:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      status:
+        type: string
+      student:
+        $ref: '#/definitions/dto.StudentSimple'
+      student_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.BatchAttendanceRequest:
+    properties:
+      attendances:
+        items:
+          $ref: '#/definitions/dto.StudentAttendanceItem'
+        type: array
+      date:
+        type: string
+    required:
+    - attendances
+    - date
+    type: object
+  dto.CourseResponse:
+    properties:
+      created_at:
+        type: string
+      duration:
+        type: integer
+      groups:
+        items:
+          $ref: '#/definitions/dto.GroupSimple'
+        type: array
+      id:
+        type: string
+      monthly_fee:
+        type: number
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.CourseSimple:
+    properties:
+      duration:
+        type: integer
+      id:
+        type: string
+      monthly_fee:
+        type: number
+      title:
+        type: string
+    type: object
+  dto.CreateAttendanceRequest:
+    properties:
+      date:
+        description: YYYY-MM-DD
+        type: string
+      notes:
+        maxLength: 500
+        type: string
+      status:
+        enum:
+        - present
+        - absent
+        - late
+        - excused
+        type: string
+      student_id:
+        type: string
+    required:
+    - date
+    - status
+    - student_id
+    type: object
+  dto.CreateCourseRequest:
+    properties:
+      duration:
+        maximum: 60
+        minimum: 1
+        type: integer
+      monthly_fee:
+        minimum: 0
+        type: number
+      title:
+        maxLength: 200
+        minLength: 2
+        type: string
+    required:
+    - duration
+    - monthly_fee
+    - title
+    type: object
+  dto.CreateGradeRequest:
+    properties:
+      date:
+        type: string
+      notes:
+        maxLength: 500
+        type: string
+      student_id:
+        type: string
+      type:
+        maxLength: 50
+        minLength: 2
+        type: string
+      value:
+        maximum: 100
+        minimum: 0
+        type: integer
+    required:
+    - date
+    - student_id
+    - type
+    - value
+    type: object
+  dto.CreateGroupRequest:
+    properties:
+      capacity:
+        maximum: 100
+        minimum: 1
+        type: integer
+      course_id:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      start_date:
+        type: string
+      teacher_id:
+        type: string
+      timetable_id:
+        type: string
+    required:
+    - capacity
+    - course_id
+    - name
+    - start_date
+    - teacher_id
+    - timetable_id
+    type: object
+  dto.CreateStudentRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+      surname:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    - phone
+    - surname
+    type: object
+  dto.CreateTeacherRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+      surname:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    - phone
+    - surname
+    type: object
+  dto.CreateTimetableRequest:
+    properties:
+      classroom:
+        maxLength: 50
+        minLength: 1
+        type: string
+      days:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+    required:
+    - classroom
+    - days
+    - end_time
+    - start_time
+    type: object
+  dto.ErrorDetail:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  dto.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/dto.ErrorDetail'
+        type: array
+      message:
+        type: string
+      path:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  dto.GradeResponse:
+    properties:
+      course_id:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      student:
+        $ref: '#/definitions/dto.StudentSimple'
+      student_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: integer
+    type: object
+  dto.GroupResponse:
+    properties:
+      capacity:
+        type: integer
+      course:
+        $ref: '#/definitions/dto.CourseSimple'
+      course_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+      student_count:
+        type: integer
+      students:
+        items:
+          $ref: '#/definitions/dto.StudentSimple'
+        type: array
+      teacher:
+        $ref: '#/definitions/dto.TeacherSimple'
+      teacher_id:
+        type: string
+      timetable:
+        $ref: '#/definitions/dto.TimetableSimple'
+      timetable_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.GroupSimple:
+    properties:
+      capacity:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+    type: object
+  dto.PaginatedResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/dto.PaginationMetadata'
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  dto.PaginationMetadata:
+    properties:
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  dto.StudentAttendanceItem:
+    properties:
+      notes:
+        maxLength: 500
+        type: string
+      status:
+        enum:
+        - present
+        - absent
+        - late
+        - excused
+        type: string
+      student_id:
+        type: string
+    required:
+    - status
+    - student_id
+    type: object
+  dto.StudentResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      group:
+        $ref: '#/definitions/dto.GroupSimple'
+      group_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      surname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.StudentSimple:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      surname:
+        type: string
+    type: object
+  dto.TeacherResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      groups:
+        items:
+          $ref: '#/definitions/dto.GroupSimple'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      surname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.TeacherSimple:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      surname:
+        type: string
+    type: object
+  dto.TimetableResponse:
+    properties:
+      classroom:
+        type: string
+      created_at:
+        type: string
+      days:
+        type: string
+      end_time:
+        type: string
+      groups:
+        items:
+          $ref: '#/definitions/dto.GroupSimple'
+        type: array
+      id:
+        type: string
+      start_time:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.TimetableSimple:
+    properties:
+      classroom:
+        type: string
+      days:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: string
+      start_time:
+        type: string
+    type: object
+  dto.UpdateCourseRequest:
+    properties:
+      duration:
+        maximum: 60
+        minimum: 1
+        type: integer
+      monthly_fee:
+        minimum: 0
+        type: number
+      title:
+        maxLength: 200
+        minLength: 2
+        type: string
+    required:
+    - duration
+    - monthly_fee
+    - title
+    type: object
+  dto.UpdateGradeRequest:
+    properties:
+      date:
+        type: string
+      notes:
+        maxLength: 500
+        type: string
+      type:
+        maxLength: 50
+        minLength: 2
+        type: string
+      value:
+        maximum: 100
+        minimum: 0
+        type: integer
+    required:
+    - date
+    - type
+    - value
+    type: object
+  dto.UpdateGroupRequest:
+    properties:
+      capacity:
+        maximum: 100
+        minimum: 1
+        type: integer
+      course_id:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      start_date:
+        type: string
+      teacher_id:
+        type: string
+      timetable_id:
+        type: string
+    required:
+    - capacity
+    - course_id
+    - name
+    - start_date
+    - teacher_id
+    - timetable_id
+    type: object
+  dto.UpdateStudentRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+      surname:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    - phone
+    - surname
+    type: object
+  dto.UpdateTeacherRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      phone:
+        type: string
+      surname:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    - phone
+    - surname
+    type: object
+  dto.UpdateTimetableRequest:
+    properties:
+      classroom:
+        maxLength: 50
+        minLength: 1
+        type: string
+      days:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+    required:
+    - classroom
+    - days
+    - end_time
+    - start_time
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A robust CRM service for educational institutions.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: CRM Service API
+  version: "1.0"
+paths:
+  /courses:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all courses with pagination and search
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get all courses
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: Create a new course with the provided details
+      parameters:
+      - description: Course Request
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.CourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new course
+      tags:
+      - courses
+  /courses/{courseID}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a course by ID
+      parameters:
+      - description: Course ID
+        in: path
+        name: courseID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a course
+      tags:
+      - courses
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific course
+      parameters:
+      - description: Course ID
+        in: path
+        name: courseID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CourseResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get a course by ID
+      tags:
+      - courses
+    put:
+      consumes:
+      - application/json
+      description: Update an existing course's information
+      parameters:
+      - description: Course ID
+        in: path
+        name: courseID
+        required: true
+        type: string
+      - description: Course Update Request
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a course
+      tags:
+      - courses
+  /grades/{gradeID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a grade by ID
+      parameters:
+      - description: Grade ID
+        in: path
+        name: gradeID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a grade
+      tags:
+      - grades
+    put:
+      consumes:
+      - application/json
+      description: Update an existing grade
+      parameters:
+      - description: Grade ID
+        in: path
+        name: gradeID
+        required: true
+        type: string
+      - description: Grade Update Request
+        in: body
+        name: grade
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateGradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GradeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a grade
+      tags:
+      - grades
+  /groups:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all groups with pagination and search
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get all groups
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Create a new group with the provided details
+      parameters:
+      - description: Group Request
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.GroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new group
+      tags:
+      - groups
+  /groups/{groupID}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a group by ID
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a group
+      tags:
+      - groups
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GroupResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get a group by ID
+      tags:
+      - groups
+    put:
+      consumes:
+      - application/json
+      description: Update an existing group's information
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Group Update Request
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a group
+      tags:
+      - groups
+  /groups/{groupID}/attendance:
+    get:
+      consumes:
+      - application/json
+      description: Get attendance records for a group, optionally filtered by date
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AttendanceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get group attendance
+      tags:
+      - attendance
+    post:
+      consumes:
+      - application/json
+      description: Mark or update attendance for a single student in a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Attendance Request
+        in: body
+        name: attendance
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AttendanceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Mark attendance for a student
+      tags:
+      - attendance
+  /groups/{groupID}/attendance/batch:
+    post:
+      consumes:
+      - application/json
+      description: Mark attendance for multiple students in a group for a specific
+        date
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Batch Attendance Request
+        in: body
+        name: batch
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchAttendanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AttendanceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Batch mark attendance
+      tags:
+      - attendance
+  /groups/{groupID}/grades:
+    get:
+      consumes:
+      - application/json
+      description: Get all grades for a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Course ID filter
+        in: query
+        name: course_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GradeResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get group grades
+      tags:
+      - grades
+    post:
+      consumes:
+      - application/json
+      description: Create a new grade for a student in a group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Grade Request
+        in: body
+        name: grade
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateGradeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.GradeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a grade
+      tags:
+      - grades
+  /groups/{groupID}/students:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of students belonging to a specific group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get students in a group
+      tags:
+      - students
+    post:
+      consumes:
+      - application/json
+      description: Create a new student in a specific group
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Student Request
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.StudentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new student
+      tags:
+      - students
+  /groups/{groupID}/students/{studentID}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a student by ID
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Student ID
+        in: path
+        name: studentID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a student
+      tags:
+      - students
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific student
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Student ID
+        in: path
+        name: studentID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.StudentResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get a student by ID
+      tags:
+      - students
+    put:
+      consumes:
+      - application/json
+      description: Update an existing student's information
+      parameters:
+      - description: Group ID
+        in: path
+        name: groupID
+        required: true
+        type: string
+      - description: Student ID
+        in: path
+        name: studentID
+        required: true
+        type: string
+      - description: Student Update Request
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.StudentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a student
+      tags:
+      - students
+  /students:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all students across all groups
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get all students (global)
+      tags:
+      - students
+  /students/{studentID}/attendance:
+    get:
+      consumes:
+      - application/json
+      description: Get attendance records for a specific student
+      parameters:
+      - description: Student ID
+        in: path
+        name: studentID
+        required: true
+        type: string
+      - description: Group ID filter
+        in: query
+        name: group_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AttendanceResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get student attendance
+      tags:
+      - attendance
+  /students/{studentID}/grades:
+    get:
+      consumes:
+      - application/json
+      description: Get all grades for a student
+      parameters:
+      - description: Student ID
+        in: path
+        name: studentID
+        required: true
+        type: string
+      - description: Group ID filter
+        in: query
+        name: group_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GradeResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get student grades
+      tags:
+      - grades
+  /teachers:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all teachers with pagination and search
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get all teachers
+      tags:
+      - teachers
+    post:
+      consumes:
+      - application/json
+      description: Create a new teacher with the provided details
+      parameters:
+      - description: Teacher Request
+        in: body
+        name: teacher
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTeacherRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TeacherResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new teacher
+      tags:
+      - teachers
+  /teachers/{teacherID}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a teacher by ID
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: teacherID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a teacher
+      tags:
+      - teachers
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific teacher
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: teacherID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TeacherResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get a teacher by ID
+      tags:
+      - teachers
+    put:
+      consumes:
+      - application/json
+      description: Update an existing teacher's information
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: teacherID
+        required: true
+        type: string
+      - description: Teacher Update Request
+        in: body
+        name: teacher
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTeacherRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TeacherResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a teacher
+      tags:
+      - teachers
+  /timetables:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all timetables with pagination and search
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaginatedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get all timetables
+      tags:
+      - timetables
+    post:
+      consumes:
+      - application/json
+      description: Create a new timetable with the provided details
+      parameters:
+      - description: Timetable Request
+        in: body
+        name: timetable
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTimetableRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.TimetableResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Create a new timetable
+      tags:
+      - timetables
+  /timetables/{timetableID}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a timetable by ID
+      parameters:
+      - description: Timetable ID
+        in: path
+        name: timetableID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete a timetable
+      tags:
+      - timetables
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific timetable
+      parameters:
+      - description: Timetable ID
+        in: path
+        name: timetableID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TimetableResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get a timetable by ID
+      tags:
+      - timetables
+    put:
+      consumes:
+      - application/json
+      description: Update an existing timetable's information
+      parameters:
+      - description: Timetable ID
+        in: path
+        name: timetableID
+        required: true
+        type: string
+      - description: Timetable Update Request
+        in: body
+        name: timetable
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTimetableRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TimetableResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Update a timetable
+      tags:
+      - timetables
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-Auth-Token
+    type: apiKey
+swagger: "2.0"

@@ -1,152 +1,138 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
-	"github.com/softclub-go-0-0/crm-service/pkg/models"
-	"gorm.io/gorm"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/softclub-go-0-0/crm-service/pkg/dto"
+	"github.com/softclub-go-0-0/crm-service/pkg/errors"
+	"github.com/softclub-go-0-0/crm-service/pkg/helpers"
 )
 
-func (h *handler) GetAllCourses(c *gin.Context) {
-	var courses []models.Course
-	var totalCount int64
+// GetAllCourses godoc
+// @Summary      Get all courses
+// @Description  Get a list of all courses with pagination and search
+// @Tags         courses
+// @Accept       json
+// @Produce      json
+// @Param        page      query     int     false  "Page number"
+// @Param        page_size query     int     false  "Page size"
+// @Param        search    query     string  false  "Search term"
+// @Success      200       {object}  dto.PaginatedResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /courses [get]
+func (h *Handler) GetAllCourses(c *gin.Context) {
+	pagination := helpers.GetPaginationParams(c)
+	// Search is already in pagination params now
 
-	// Get pagination parameters
-	params := helpers.GetPaginationParams(c)
-
-	// Get sort parameters
-	sortBy := helpers.GetSortParams(c, "created_at")
-
-	// Get search parameter
-	search := helpers.GetSearchParam(c)
-
-	// Build query
-	query := h.DB.Model(&models.Course{})
-
-	// Apply search filter if provided
-	if search != "" {
-		query = query.Where("title ILIKE ?", "%"+search+"%")
-	}
-
-	// Get total count
-	if err := query.Count(&totalCount).Error; err != nil {
-		log.Println("DB error - cannot count courses:", err)
-		helpers.InternalServerError(c)
+	response, err := h.courseService.GetAll(c.Request.Context(), pagination)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	// Apply pagination and sorting
-	result := query.
-		Order(sortBy).
-		Offset(params.Offset).
-		Limit(params.PageSize).
-		Preload("Groups").
-		Find(&courses)
-
-	if result.Error != nil {
-		log.Println("DB error - cannot find courses:", result.Error)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	helpers.PaginatedSuccessResponse(c, courses, totalCount, params, "Courses retrieved successfully")
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) CreateCourse(c *gin.Context) {
-	var course models.Course
+// CreateCourse godoc
+// @Summary      Create a new course
+// @Description  Create a new course with the provided details
+// @Tags         courses
+// @Accept       json
+// @Produce      json
+// @Param        course   body      dto.CreateCourseRequest  true  "Course Request"
+// @Success      201      {object}  dto.CourseResponse
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
+// @Router       /courses [post]
+func (h *Handler) CreateCourse(c *gin.Context) {
+	var req dto.CreateCourseRequest
 
-	if err := c.ShouldBindJSON(&course); err != nil {
-		log.Println("binding course data:", err)
-		helpers.UnprocessableEntity(c, err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
 		return
 	}
 
-	// Check if course with same title already exists
-	var existingCourse models.Course
-	if err := h.DB.Where("title = ?", course.Title).First(&existingCourse).Error; err == nil {
-		helpers.Conflict(c, "Course with this title already exists")
+	response, err := h.courseService.Create(c.Request.Context(), req)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	if err := h.DB.Create(&course).Error; err != nil {
-		log.Println("inserting course data to DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	helpers.CreatedResponse(c, course, "Course created successfully")
+	c.JSON(http.StatusCreated, response)
 }
 
-func (h *handler) GetOneCourse(c *gin.Context) {
-	var course models.Course
-
-	if err := h.DB.Preload("Groups").First(&course, "id = ?", c.Param("courseID")).Error; err != nil {
-		log.Println("getting a course:", err)
-		helpers.NotFound(c, "course")
+// GetOneCourse godoc
+// @Summary      Get a course by ID
+// @Description  Get detailed information about a specific course
+// @Tags         courses
+// @Accept       json
+// @Produce      json
+// @Param        courseID  path      string  true  "Course ID"
+// @Success      200       {object}  dto.CourseResponse
+// @Failure      404       {object}  dto.ErrorResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /courses/{courseID} [get]
+func (h *Handler) GetOneCourse(c *gin.Context) {
+	id := c.Param("courseID")
+	response, err := h.courseService.GetByID(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, course)
+	c.JSON(http.StatusOK, response)
 }
 
-type courseDataForUpdate struct {
-	Title      string `json:"title" binding:"required"`
-	MonthlyFee uint   `json:"monthly_fee" binding:"omitempty,number"`
-	Duration   uint   `json:"duration" binding:"omitempty,number"`
+// UpdateCourse godoc
+// @Summary      Update a course
+// @Description  Update an existing course's information
+// @Tags         courses
+// @Accept       json
+// @Produce      json
+// @Param        courseID  path      string                   true  "Course ID"
+// @Param        course    body      dto.UpdateCourseRequest  true  "Course Update Request"
+// @Success      200       {object}  dto.CourseResponse
+// @Failure      400       {object}  dto.ErrorResponse
+// @Failure      404       {object}  dto.ErrorResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /courses/{courseID} [put]
+func (h *Handler) UpdateCourse(c *gin.Context) {
+	id := c.Param("courseID")
+	var req dto.UpdateCourseRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errors.HandleError(c, errors.Validation(err.Error()))
+		return
+	}
+
+	response, err := h.courseService.Update(c.Request.Context(), id, req)
+	if err != nil {
+		errors.HandleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-func (h *handler) UpdateCourse(c *gin.Context) {
-	var course models.Course
-
-	if err := h.DB.Where("id = ?", c.Param("courseID")).First(&course).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a course:", err)
-			helpers.NotFound(c, "course")
-			return
-		}
-		log.Println("getting a course:", err)
-		helpers.InternalServerError(c)
+// DeleteCourse godoc
+// @Summary      Delete a course
+// @Description  Soft delete a course by ID
+// @Tags         courses
+// @Accept       json
+// @Produce      json
+// @Param        courseID  path      string  true  "Course ID"
+// @Success      200       {object}  map[string]interface{}
+// @Failure      404       {object}  dto.ErrorResponse
+// @Failure      500       {object}  dto.ErrorResponse
+// @Router       /courses/{courseID} [delete]
+func (h *Handler) DeleteCourse(c *gin.Context) {
+	id := c.Param("courseID")
+	err := h.courseService.Delete(c.Request.Context(), id)
+	if err != nil {
+		errors.HandleError(c, err)
 		return
 	}
 
-	var courseData courseDataForUpdate
-
-	if err := c.ShouldBindJSON(&courseData); err != nil {
-		log.Println("binding course data:", err)
-		helpers.UnprocessableEntity(c, err)
-		return
-	}
-
-	if err := h.DB.Model(&course).Updates(courseData).Error; err != nil {
-		log.Println("updating course data in DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, course)
-}
-
-func (h *handler) DeleteCourse(c *gin.Context) {
-	var course models.Course
-
-	if err := h.DB.Where("id = ?", c.Param("courseID")).First(&course).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			log.Println("getting a course:", err)
-			helpers.NotFound(c, "course")
-			return
-		}
-		log.Println("getting a course:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	if err := h.DB.Delete(&course).Error; err != nil {
-		log.Println("deleting course data from DB:", err)
-		helpers.InternalServerError(c)
-		return
-	}
-
-	c.JSON(http.StatusOK, course)
+	c.Status(http.StatusOK)
 }
