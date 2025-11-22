@@ -44,11 +44,11 @@ type DatabaseConfig struct {
 
 // AuthConfig holds authentication service configuration
 type AuthConfig struct {
-	ServiceAddr    string
-	Timeout        time.Duration
-	SkipAuth       bool
-	MaxRetries     int
-	RetryBackoff   time.Duration
+	ServiceAddr  string
+	Timeout      time.Duration
+	SkipAuth     bool
+	MaxRetries   int
+	RetryBackoff time.Duration
 }
 
 // LoggingConfig holds logging configuration
@@ -57,9 +57,9 @@ type LoggingConfig struct {
 	Format     string // json, pretty
 	Output     string // stdout, file, both
 	FilePath   string
-	MaxSize    int  // megabytes
+	MaxSize    int // megabytes
 	MaxBackups int
-	MaxAge     int  // days
+	MaxAge     int // days
 	Compress   bool
 }
 
@@ -91,7 +91,7 @@ func Load() (*Config, error) {
 	v.SetConfigType("env")
 	v.AddConfigPath(".")
 	v.AddConfigPath("./")
-	
+
 	// Allow viper to read from environment variables
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
