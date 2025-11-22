@@ -1,6 +1,6 @@
 module github.com/softclub-go-0-0/crm-service
 
-go 1.24.0
+go 1.21
 
 require (
 	github.com/gin-contrib/cors v1.7.6
