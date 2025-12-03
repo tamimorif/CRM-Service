@@ -24,10 +24,11 @@ type Invoice struct {
 	ID uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
 
 	// Invoice details
-	InvoiceNumber string     `gorm:"type:varchar(50);unique;not null" json:"invoice_number"`
-	StudentID     uuid.UUID  `gorm:"type:uuid;not null;index" json:"student_id"`
-	CourseID      *uuid.UUID `gorm:"type:uuid;index" json:"course_id,omitempty"`
-	GroupID       *uuid.UUID `gorm:"type:uuid;index" json:"group_id,omitempty"`
+	InvoiceNumber      string     `gorm:"type:varchar(50);unique;not null" json:"invoice_number"`
+	StudentID          uuid.UUID  `gorm:"type:uuid;not null;index" json:"student_id"`
+	CourseID           *uuid.UUID `gorm:"type:uuid;index" json:"course_id,omitempty"`
+	GroupID            *uuid.UUID `gorm:"type:uuid;index" json:"group_id,omitempty"`
+	RecurringInvoiceID *uuid.UUID `gorm:"type:uuid;index" json:"recurring_invoice_id,omitempty"`
 
 	// Amounts
 	SubTotal       float64 `gorm:"not null" json:"sub_total"`
@@ -36,6 +37,7 @@ type Invoice struct {
 	TotalAmount    float64 `gorm:"not null" json:"total_amount"`
 	PaidAmount     float64 `gorm:"default:0" json:"paid_amount"`
 	BalanceAmount  float64 `gorm:"not null" json:"balance_amount"`
+	Currency       string  `gorm:"type:varchar(3);default:'USD'" json:"currency"`
 
 	// Status and dates
 	Status    InvoiceStatus `gorm:"type:varchar(20);not null;default:'draft'" json:"status"`

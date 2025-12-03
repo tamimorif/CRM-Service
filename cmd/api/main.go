@@ -82,6 +82,12 @@ func main() {
 	applicationService := services.NewApplicationService(db)
 	examService := services.NewExamService(db)
 	portalService := services.NewPortalService(db)
+	parentService := services.NewParentService(db)
+	assignmentService := services.NewAssignmentService(db)
+	waitlistService := services.NewWaitlistService(db)
+	bulkService := services.NewBulkService(db)
+	recurringInvoiceService := services.NewRecurringInvoiceService(db)
+	advancedSearchService := services.NewAdvancedSearchService(db)
 
 	// Auto-migrate models
 	err = db.AutoMigrate(
@@ -107,6 +113,15 @@ func main() {
 		&models.Application{},
 		&models.Exam{},
 		&models.ExamResult{},
+		&models.Parent{},
+		&models.ParentStudent{},
+		&models.Assignment{},
+		&models.AssignmentSubmission{},
+		&models.Waitlist{},
+		&models.RecurringInvoice{},
+		&models.StudentTransfer{},
+		&models.CustomField{},
+		&models.CustomFieldValue{},
 	)
 	if err != nil {
 		logger.Fatal("failed to auto-migrate database models", err)
@@ -136,6 +151,12 @@ func main() {
 		applicationService,
 		examService,
 		portalService,
+		parentService,
+		assignmentService,
+		waitlistService,
+		bulkService,
+		recurringInvoiceService,
+		advancedSearchService,
 	)
 
 	// Initialize session handler
@@ -373,6 +394,61 @@ func main() {
 	{
 		portal.GET("/student/:studentID", h.GetStudentPortal)
 		portal.GET("/teacher/:teacherID", h.GetTeacherPortal)
+	}
+
+	// Parent Management
+	parents := router.Group("/parents")
+	{
+		parents.POST("/", h.CreateParent)
+		parents.PUT("/:parentID", h.UpdateParent)
+		parents.GET("/:parentID", h.GetParent)
+		parents.DELETE("/:parentID", h.DeleteParent)
+		parents.POST("/link", h.LinkStudent)
+	}
+	router.GET("/students/:studentID/parents", h.GetStudentParents)
+
+	// Assignment Management
+	assignments := router.Group("/assignments")
+	{
+		assignments.POST("/", h.CreateAssignment)
+		assignments.PUT("/:assignmentID", h.UpdateAssignment)
+		assignments.GET("/:assignmentID", h.GetAssignment)
+		assignments.POST("/:assignmentID/submit/:studentID", h.SubmitAssignment)
+		assignments.POST("/submissions/:submissionID/grade", h.GradeSubmission)
+	}
+	router.GET("/groups/:groupID/assignments", h.GetGroupAssignments)
+
+	// Waitlist Management
+	waitlists := router.Group("/waitlists")
+	{
+		waitlists.POST("/", h.AddToWaitlist)
+		waitlists.PUT("/:entryID", h.UpdateWaitlistEntry)
+		waitlists.POST("/:entryID/process", h.ProcessWaitlistEntry)
+	}
+	router.GET("/groups/:groupID/waitlist", h.GetGroupWaitlist)
+
+	// Bulk Operations
+	bulk := router.Group("/bulk")
+	{
+		bulk.POST("/students", h.BulkCreateStudents)
+		bulk.POST("/attendance", h.BulkMarkAttendance)
+		bulk.POST("/grades", h.BulkImportGrades)
+	}
+
+	// Recurring Invoices
+	recurringInvoices := router.Group("/recurring-invoices")
+	{
+		recurringInvoices.POST("/", h.CreateRecurringInvoice)
+		recurringInvoices.PUT("/:id", h.UpdateRecurringInvoice)
+		recurringInvoices.POST("/generate", h.GenerateInvoices)
+	}
+	router.GET("/students/:studentID/recurring-invoices", h.GetStudentRecurringInvoices)
+
+	// Advanced Search
+	search := router.Group("/search")
+	{
+		search.POST("/students", h.SearchStudents)
+		search.POST("/invoices", h.SearchInvoices)
 	}
 
 	// Audit Logs (Admin only)

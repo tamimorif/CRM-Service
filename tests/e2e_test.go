@@ -112,7 +112,7 @@ func setupRouter() *gin.Engine {
 		calendarService,
 		applicationService,
 		examService,
-		portalService,
+		portalServic,
 	)
 
 	gin.SetMode(gin.TestMode)

@@ -1,4 +1,3 @@
-
 # **CRM System for Educational Institutions**
 
 A robust and scalable Customer Relationship Management (CRM) system built using **Golang**. This system is specifically designed for educational institutions to manage courses, teachers, students, groups, and timetables efficiently.
@@ -18,17 +17,28 @@ A robust and scalable Customer Relationship Management (CRM) system built using 
 - ✅ **Docker & Docker Compose** support for easy deployment
 - ✅ **PostgreSQL Database** with automatic migrations
 
+### New Features
+- ✅ **Parent Portal**: Manage parent profiles and link them to students
+- ✅ **Assignment Tracking**: Create and manage homework, projects, and quizzes
+- ✅ **Waitlist Management**: Handle course waitlists with priority and notifications
+- ✅ **Bulk Operations**: Bulk create students, attendance, and grades
+- ✅ **Recurring Invoices**: Automated monthly invoicing system
+- ✅ **Advanced Search**: Multi-field filtering and date range support
+
 ### Data Models
 - **Teachers** - Manage teacher information and their assigned groups
 - **Students** - Track student enrollment and group assignments
+- **Parents** - Manage parent contact info and student relationships
 - **Courses** - Define courses with pricing and duration
 - **Groups** - Organize students into groups with assigned teachers and schedules
 - **Timetables** - Manage class schedules and classroom assignments
+- **Assignments** - Track homework, projects, and grades
+- **Waitlists** - Manage prospective students for full courses
 
 ---
 
 ## **Tech Stack**
-- **Backend**: Go 1.20+
+- **Backend**: Go 1.24+
 - **Framework**: Gin Web Framework
 - **Database**: PostgreSQL with GORM
 - **Authentication**: gRPC integration with separate auth service
@@ -41,7 +51,7 @@ A robust and scalable Customer Relationship Management (CRM) system built using 
 ## **Quick Start**
 
 ### Prerequisites
-- Go 1.20 or higher
+- Go 1.24 or higher
 - PostgreSQL 12+
 - Docker & Docker Compose (optional)
 
@@ -117,18 +127,18 @@ curl http://localhost:8080/health
 │   └── console/      # Console utilities
 ├── pkg/
 │   ├── auth/         # gRPC auth client (generated)
+│   ├── config/       # Application configuration
 │   ├── database/     # Database configuration
+│   ├── dto/          # Data Transfer Objects
+│   ├── errors/       # Custom error definitions
 │   ├── handlers/     # HTTP request handlers
-│   │   ├── courses.go
-│   │   ├── groups.go
-│   │   ├── students.go
-│   │   ├── teachers.go
-│   │   ├── timetables.go
-│   │   ├── health.go
-│   │   └── handlers.go
 │   ├── helpers/      # HTTP response helpers & utilities
-│   ├── middlewares/  # Auth middleware
-│   └── models/       # Database models
+│   ├── logger/       # Logging configuration
+│   ├── middlewares/  # Auth & logging middleware
+│   ├── models/       # Database models
+│   ├── repository/   # Data access layer
+│   └── services/     # Business logic layer
+├── tests/            # Integration and unit tests
 ├── .env.example      # Environment variables template
 ├── docker-compose.yml
 ├── Dockerfile

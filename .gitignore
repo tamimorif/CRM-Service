@@ -5,12 +5,14 @@ crm-service
 *.dll
 *.so
 *.dylib
+bin/
 
 # Test binary
 *.test
 
 # Output of the go coverage tool
 *.out
+coverage.html
 
 # Dependency directories
 vendor/
@@ -19,12 +21,13 @@ vendor/
 go.work
 
 # IDE specific files
-.idea
-*.xml
+.idea/
 .vscode/
+*.xml
 *.swp
 *.swo
 *~
+*.iml
 
 # Environment files
 .env
@@ -37,6 +40,7 @@ Thumbs.db
 
 # Log files
 *.log
+logs/
 
 # Docker volumes
 postgres_data/
@@ -48,3 +52,7 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Test artifacts
+tests/uploads/*
+!tests/uploads/.gitkeep

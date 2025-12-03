@@ -88,3 +88,17 @@ func Conflict(c *gin.Context, message string) {
 		Timestamp: time.Now(),
 	})
 }
+
+type ErrorResponse APIResponse
+
+type Response struct {
+	Message string `json:"message"`
+}
+
+func NewErrorResponse(c *gin.Context, statusCode int, message string) {
+	c.AbortWithStatusJSON(statusCode, APIResponse{
+		Success:   false,
+		Message:   message,
+		Timestamp: time.Now(),
+	})
+}
