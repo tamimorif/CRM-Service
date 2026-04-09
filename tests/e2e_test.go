@@ -89,6 +89,12 @@ func setupRouter() *gin.Engine {
 	applicationService := services.NewApplicationService(db)
 	examService := services.NewExamService(db)
 	portalService := services.NewPortalService(db)
+	parentService := services.NewParentService(db)
+	assignmentService := services.NewAssignmentService(db)
+	waitlistService := services.NewWaitlistService(db)
+	bulkService := services.NewBulkService(db)
+	recurringInvoiceService := services.NewRecurringInvoiceService(db)
+	advancedSearchService := services.NewAdvancedSearchService(db)
 
 	h := handlers.NewHandler(
 		teacherService,
@@ -112,7 +118,13 @@ func setupRouter() *gin.Engine {
 		calendarService,
 		applicationService,
 		examService,
-		portalServic,
+		portalService,
+		parentService,
+		assignmentService,
+		waitlistService,
+		bulkService,
+		recurringInvoiceService,
+		advancedSearchService,
 	)
 
 	gin.SetMode(gin.TestMode)

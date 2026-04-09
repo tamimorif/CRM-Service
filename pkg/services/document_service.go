@@ -16,6 +16,25 @@ import (
 	"gorm.io/gorm"
 )
 
+// Security: File upload constraints
+const (
+	maxFileSize = 10 * 1024 * 1024 // 10MB
+)
+
+// Security: Allowed MIME types for document uploads
+var allowedMimeTypes = map[string]bool{
+	"application/pdf":    true,
+	"image/jpeg":         true,
+	"image/png":          true,
+	"image/gif":          true,
+	"application/msword": true,
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": true,
+	"application/vnd.ms-excel": true,
+	"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": true,
+	"text/plain": true,
+	"text/csv":   true,
+}
+
 // DocumentService handles document operations
 type DocumentService struct {
 	db         *gorm.DB
@@ -44,6 +63,17 @@ func NewDocumentService(db *gorm.DB) *DocumentService {
 
 // Upload uploads a new document
 func (s *DocumentService) Upload(ctx context.Context, req dto.UploadDocumentRequest, file *multipart.FileHeader, uploaderID uuid.UUID) (*dto.DocumentResponse, error) {
+	// Security: Validate file size
+	if file.Size > maxFileSize {
+		return nil, fmt.Errorf("file size exceeds maximum allowed (%d MB)", maxFileSize/(1024*1024))
+	}
+
+	// Security: Validate MIME type
+	mimeType := file.Header.Get("Content-Type")
+	if !allowedMimeTypes[mimeType] {
+		return nil, fmt.Errorf("file type not allowed: %s", mimeType)
+	}
+
 	// Open uploaded file
 	src, err := file.Open()
 	if err != nil {
@@ -271,12 +301,31 @@ func (s *DocumentService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// GetFilePath returns the file path for a document
+// GetFilePath returns the file path for a document with path traversal protection
 func (s *DocumentService) GetFilePath(ctx context.Context, id string) (string, error) {
 	var document models.Document
 	if err := s.db.First(&document, "id = ?", id).Error; err != nil {
 		return "", fmt.Errorf("document not found")
 	}
+
+	// Security: Validate path is within upload directory to prevent path traversal
+	absFilePath, err := filepath.Abs(document.FilePath)
+	if err != nil {
+		return "", fmt.Errorf("invalid file path")
+	}
+	absUploadPath, err := filepath.Abs(s.uploadPath)
+	if err != nil {
+		return "", fmt.Errorf("invalid upload path configuration")
+	}
+	if !strings.HasPrefix(absFilePath, absUploadPath) {
+		return "", fmt.Errorf("access denied: file path outside allowed directory")
+	}
+
+	// Verify file exists
+	if _, err := os.Stat(document.FilePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("file not found on disk")
+	}
+
 	return document.FilePath, nil
 }
 

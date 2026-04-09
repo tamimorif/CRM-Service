@@ -21,11 +21,11 @@ func NewBulkService(db *gorm.DB) *BulkService {
 	return &BulkService{db: db}
 }
 
-// BulkCreateStudents creates multiple students at once
+// BulkCreateStudents creates multiple students at once using batch insert for performance
 func (s *BulkService) BulkCreateStudents(ctx context.Context, req dto.BulkCreateStudentsRequest) (*dto.BulkCreateStudentsResponse, error) {
 	resp := &dto.BulkCreateStudentsResponse{
 		TotalRequested: len(req.Students),
-		Created:        make([]dto.StudentSimple, 0),
+		Created:        make([]dto.StudentSimple, 0, len(req.Students)),
 		Failed:         make([]dto.BulkFailedItem, 0),
 	}
 
@@ -35,31 +35,49 @@ func (s *BulkService) BulkCreateStudents(ctx context.Context, req dto.BulkCreate
 		return nil, fmt.Errorf("group not found: %w", err)
 	}
 
-	// Process each student
-	for i, studentReq := range req.Students {
-		student := models.Student{
+	// Prepare all students for batch insert
+	students := make([]models.Student, 0, len(req.Students))
+	for _, studentReq := range req.Students {
+		students = append(students, models.Student{
 			ID:      uuid.New(),
 			GroupID: req.GroupID,
 			Name:    studentReq.Name,
 			Surname: studentReq.Surname,
 			Phone:   studentReq.Phone,
 			Email:   studentReq.Email,
-		}
+		})
+	}
 
-		if err := s.db.Create(&student).Error; err != nil {
+	// Use transaction with batch insert for better performance
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		// CreateInBatches for optimal performance with large datasets
+		// Batch size of 100 balances memory usage and insert speed
+		if err := tx.CreateInBatches(students, 100).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		// If batch insert fails, report all as failed
+		for i, studentReq := range req.Students {
 			resp.TotalFailed++
 			resp.Failed = append(resp.Failed, dto.BulkFailedItem{
 				Index: i,
 				Error: err.Error(),
 				Data:  studentReq,
 			})
-		} else {
-			resp.TotalCreated++
-			resp.Created = append(resp.Created, dto.StudentSimple{
-				ID:   student.ID,
-				Name: student.Name + " " + student.Surname,
-			})
 		}
+		return resp, nil
+	}
+
+	// All students created successfully
+	for _, student := range students {
+		resp.TotalCreated++
+		resp.Created = append(resp.Created, dto.StudentSimple{
+			ID:   student.ID,
+			Name: student.Name + " " + student.Surname,
+		})
 	}
 
 	return resp, nil

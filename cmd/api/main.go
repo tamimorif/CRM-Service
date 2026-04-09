@@ -103,6 +103,7 @@ func main() {
 		&models.Session{},
 		&models.Payment{},
 		&models.Invoice{},
+		&models.InvoiceCounter{}, // Added for atomic invoice number generation
 		&models.Discount{},
 		&models.Scholarship{},
 		&models.Notification{},
@@ -174,6 +175,12 @@ func main() {
 	router.Use(middlewares.Recovery())
 	router.Use(middlewares.CORS())
 	router.Use(middlewares.RateLimit(20, 40)) // 20 req/sec, burst 40
+
+	// Database middleware for RBAC permission checks
+	router.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
 
 	// Health check endpoints (no auth required)
 	router.GET("/health", h.HealthCheck)

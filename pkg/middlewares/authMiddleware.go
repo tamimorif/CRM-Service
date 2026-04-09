@@ -6,10 +6,12 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/softclub-go-0-0/crm-service/pkg/auth"
 	"github.com/softclub-go-0-0/crm-service/pkg/config"
 	"github.com/softclub-go-0-0/crm-service/pkg/errors"
 	"github.com/softclub-go-0-0/crm-service/pkg/logger"
+	"github.com/softclub-go-0-0/crm-service/pkg/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -94,8 +96,35 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Store user info in context for use in handlers
+		// Store user info in context for use in handlers and RBAC middleware
 		if authResp.User != nil {
+			// Create user object for RBAC middleware compatibility
+			userRole := models.RoleStaff // Default role
+			if len(authResp.User.Roles) > 0 {
+				switch authResp.User.Roles[0] {
+				case "admin":
+					userRole = models.RoleAdmin
+				case "teacher":
+					userRole = models.RoleTeacher
+				case "student":
+					userRole = models.RoleStudent
+				case "staff":
+					userRole = models.RoleStaff
+				}
+			}
+
+			user := &models.User{
+				Email:     authResp.User.Email,
+				FirstName: authResp.User.FirstName,
+				LastName:  authResp.User.LastName,
+				Role:      userRole,
+			}
+			// Parse UUID if valid
+			if uid, err := uuid.Parse(authResp.User.Id); err == nil {
+				user.ID = uid
+			}
+
+			c.Set("user", user)
 			c.Set("user_id", authResp.User.Id)
 			c.Set("user_name", authResp.User.FirstName+" "+authResp.User.LastName)
 			c.Set("user_email", authResp.User.Email)

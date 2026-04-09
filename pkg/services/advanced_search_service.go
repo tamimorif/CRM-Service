@@ -10,6 +10,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// Security: Whitelists for allowed columns to prevent SQL injection
+var (
+	allowedSortColumns = map[string]bool{
+		"created_at": true, "updated_at": true, "name": true,
+		"surname": true, "email": true, "phone": true,
+		"status": true, "total_amount": true, "due_date": true,
+		"issue_date": true, "invoice_number": true,
+	}
+	allowedDateFields = map[string]bool{
+		"created_at": true, "updated_at": true, "due_date": true,
+		"issue_date": true, "paid_date": true, "date": true,
+	}
+)
+
 // AdvancedSearchService handles advanced search operations
 type AdvancedSearchService struct {
 	db *gorm.DB
@@ -49,8 +63,8 @@ func (s *AdvancedSearchService) SearchStudents(ctx context.Context, req dto.Adva
 	}
 	offset := (req.Page - 1) * req.PageSize
 
-	// Sorting
-	if req.SortBy != "" {
+	// Sorting - validate against whitelist to prevent SQL injection
+	if req.SortBy != "" && allowedSortColumns[req.SortBy] {
 		order := "ASC"
 		if strings.ToUpper(req.SortOrder) == "DESC" {
 			order = "DESC"
@@ -120,8 +134,8 @@ func (s *AdvancedSearchService) SearchInvoices(ctx context.Context, req dto.Adva
 	}
 	offset := (req.Page - 1) * req.PageSize
 
-	// Sorting
-	if req.SortBy != "" {
+	// Sorting - validate against whitelist to prevent SQL injection
+	if req.SortBy != "" && allowedSortColumns[req.SortBy] {
 		order := "ASC"
 		if strings.ToUpper(req.SortOrder) == "DESC" {
 			order = "DESC"
@@ -158,9 +172,9 @@ func (s *AdvancedSearchService) applyFilters(query *gorm.DB, req dto.AdvancedSea
 		// In a real implementation, we'd check the model type
 	}
 
-	// Date range
+	// Date range - validate field against whitelist to prevent SQL injection
 	dateField := "created_at"
-	if req.DateField != "" {
+	if req.DateField != "" && allowedDateFields[req.DateField] {
 		dateField = req.DateField
 	}
 
