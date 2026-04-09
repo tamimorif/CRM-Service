@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM-Service — Educational Institution Management Platform</title>
+  <meta name="description" content="A robust, scalable CRM system built with Go for educational institutions. Manage courses, students, teachers, grades, payments, and more with 67+ API endpoints.">
+  <meta name="keywords" content="CRM, educational, Go, Golang, API, student management, course management">
+  <meta name="author" content="Tamim Orif">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="CRM-Service — Educational CRM Platform">
+  <meta property="og:description" content="A robust CRM system built with Go for managing educational institutions end-to-end.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tamimorif.github.io/CRM-Service/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVIGATION
+       ============================================================ -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <defs><linearGradient id="logo-g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+          <rect width="32" height="32" rx="8" fill="url(#logo-g)"/>
+          <path d="M8 11h6v2H8zm0 4h10v2H8zm0 4h8v2H8zm18-6l-4 4-2-2-1.5 1.5L22 18l5.5-5.5z" fill="#fff" opacity="0.95"/>
+        </svg>
+        CRM-Service
+      </a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#api">API</a></li>
+        <li><a href="#tech-stack">Tech Stack</a></li>
+        <li><a href="https://github.com/tamimorif/CRM-Service" target="_blank" class="nav-cta">⭐ Star on GitHub</a></li>
+      </ul>
+
+      <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle navigation">☰</button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO SECTION
+       ============================================================ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-dots"></div>
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        Open Source &middot; MIT Licensed &middot; Production Ready
+      </div>
+
+      <h1>
+        The <span class="gradient-text">Modern CRM</span> for<br>
+        Educational Institutions
+      </h1>
+
+      <p class="hero-subtitle">
+        A robust, scalable backend built with Go — manage students, teachers, courses, grades, payments, and more through 67+ RESTful API endpoints.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://github.com/tamimorif/CRM-Service" target="_blank" class="btn-primary" id="hero-cta-github">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a href="#dashboard" class="btn-secondary" id="hero-cta-demo">
+          ▶ Live Demo
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value" data-counter data-target="67" data-suffix="+">0</div>
+          <div class="hero-stat-label">API Endpoints</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" data-counter data-target="29" data-suffix="">0</div>
+          <div class="hero-stat-label">Data Models</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" data-counter data-target="10" data-suffix="">0</div>
+          <div class="hero-stat-label">Feature Phases</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" data-counter data-target="100" data-suffix="%" data-prefix="">0</div>
+          <div class="hero-stat-label">Open Source</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <div class="mouse"><div class="wheel"></div></div>
+      <span>Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURES SECTION
+       ============================================================ -->
+  <section class="features section-padding" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">✦ Features</div>
+        <h2 class="section-title">Everything You Need to<br><span class="gradient-text">Run an Institution</span></h2>
+        <p class="section-desc">From enrollment to graduation — manage every aspect of your educational institution with a comprehensive set of tools.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Card 1 -->
+        <div class="feature-card glass-card reveal reveal-delay-1" id="feature-students">
+          <div class="feature-icon">🎓</div>
+          <h3>Student Management</h3>
+          <p>Track enrollment, group assignments, grades, attendance, and student progress with full CRUD operations and bulk imports.</p>
+          <span class="feature-tag tag-core">Core</span>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="feature-card glass-card reveal reveal-delay-2" id="feature-teachers">
+          <div class="feature-icon">👨‍🏫</div>
+          <h3>Teacher Management</h3>
+          <p>Manage teacher profiles, subject assignments, group allocations, and performance tracking across your institution.</p>
+          <span class="feature-tag tag-core">Core</span>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="feature-card glass-card reveal reveal-delay-3" id="feature-courses">
+          <div class="feature-icon">📚</div>
+          <h3>Course & Group System</h3>
+          <p>Define courses with pricing and duration, organize students into groups, and manage class capacities effortlessly.</p>
+          <span class="feature-tag tag-core">Core</span>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="feature-card glass-card reveal reveal-delay-1" id="feature-grades">
+          <div class="feature-icon">📊</div>
+          <h3>Grades & Exams</h3>
+          <p>Create exams, submit results, generate statistics, and track student progress with detailed grade analytics.</p>
+          <span class="feature-tag tag-new">New</span>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="feature-card glass-card reveal reveal-delay-2" id="feature-finance">
+          <div class="feature-icon">💰</div>
+          <h3>Financial Management</h3>
+          <p>Handle payments, generate invoices, manage recurring billing, scholarships, and discounts — all in one place.</p>
+          <span class="feature-tag tag-finance">Finance</span>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="feature-card glass-card reveal reveal-delay-3" id="feature-scheduling">
+          <div class="feature-icon">📅</div>
+          <h3>Scheduling & Attendance</h3>
+          <p>Build timetables, manage classroom assignments, and track student attendance with group-level analytics.</p>
+          <span class="feature-tag tag-new">New</span>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="feature-card glass-card reveal reveal-delay-1" id="feature-communication">
+          <div class="feature-icon">💬</div>
+          <h3>Communication Hub</h3>
+          <p>Send notifications, manage messages, create templates, and keep parents, teachers, and students connected.</p>
+          <span class="feature-tag tag-comm">Communication</span>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="feature-card glass-card reveal reveal-delay-2" id="feature-documents">
+          <div class="feature-icon">📄</div>
+          <h3>Document Management</h3>
+          <p>Upload, approve, and manage documents with entity-level organization and approval workflows.</p>
+          <span class="feature-tag tag-new">New</span>
+        </div>
+
+        <!-- Card 9 -->
+        <div class="feature-card glass-card reveal reveal-delay-3" id="feature-analytics">
+          <div class="feature-icon">📈</div>
+          <h3>Analytics Dashboard</h3>
+          <p>Real-time metrics for enrollment, revenue, attendance patterns, and student progress — all from powerful API endpoints.</p>
+          <span class="feature-tag tag-new">New</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       LIVE DASHBOARD DEMO
+       ============================================================ -->
+  <section class="dashboard-section section-padding" id="dashboard">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">◈ Interactive Demo</div>
+        <h2 class="section-title">See It in <span class="gradient-text">Action</span></h2>
+        <p class="section-desc">Explore a live interactive mockup of the CRM dashboard. Switch views, search data — it all works.</p>
+      </div>
+
+      <div class="dashboard-wrapper reveal">
+        <!-- Top bar (browser chrome) -->
+        <div class="dash-topbar">
+          <div class="dash-topbar-left">
+            <div class="dash-window-dots">
+              <span class="dot-red"></span>
+              <span class="dot-yellow"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="dash-url-bar">
+              <span class="lock">🔒</span>
+              crm-service.app/dashboard
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard body -->
+        <div class="dash-body">
+          <!-- Sidebar -->
+          <aside class="dash-sidebar">
+            <div class="dash-sidebar-brand">
+              <span class="brand-dot"></span>
+              EduCRM
+            </div>
+            <nav>
+              <div class="dash-nav-section">Management</div>
+              <ul class="dash-nav">
+                <li><a href="#" data-view="students" class="active"><span class="nav-icon">🎓</span> Students</a></li>
+                <li><a href="#" data-view="courses"><span class="nav-icon">📚</span> Courses</a></li>
+                <li><a href="#" data-view="teachers"><span class="nav-icon">👨‍🏫</span> Teachers</a></li>
+              </ul>
+              <div class="dash-nav-section">Operations</div>
+              <ul class="dash-nav">
+                <li><a href="#"><span class="nav-icon">📅</span> Schedule</a></li>
+                <li><a href="#"><span class="nav-icon">📊</span> Grades</a></li>
+                <li><a href="#"><span class="nav-icon">💰</span> Payments</a></li>
+                <li><a href="#"><span class="nav-icon">📄</span> Documents</a></li>
+              </ul>
+              <div class="dash-nav-section">System</div>
+              <ul class="dash-nav">
+                <li><a href="#"><span class="nav-icon">🔔</span> Notifications</a></li>
+                <li><a href="#"><span class="nav-icon">⚙️</span> Settings</a></li>
+              </ul>
+            </nav>
+          </aside>
+
+          <!-- Main -->
+          <main class="dash-main">
+            <div class="dash-header">
+              <h2 class="dash-title" id="dash-view-title">Students</h2>
+              <div class="dash-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="dash-search-input" placeholder="Search students..." autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Metric cards -->
+            <div class="dash-metrics">
+              <div class="metric-card">
+                <div class="metric-label">Total Students</div>
+                <div class="metric-value" style="color: var(--accent-blue);">247</div>
+                <div class="metric-change metric-up">↑ 12% this month</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Active Courses</div>
+                <div class="metric-value" style="color: var(--accent-emerald);">18</div>
+                <div class="metric-change metric-up">↑ 3 new</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Revenue</div>
+                <div class="metric-value" style="color: var(--accent-amber);">$84K</div>
+                <div class="metric-change metric-up">↑ 8% growth</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Avg. Grade</div>
+                <div class="metric-value" style="color: var(--accent-purple);">B+</div>
+                <div class="metric-change metric-up">↑ 0.3 pts</div>
+              </div>
+            </div>
+
+            <!-- Chart + Table -->
+            <div class="dash-content-grid">
+              <!-- Chart panel -->
+              <div class="dash-panel">
+                <div class="dash-panel-header">
+                  <span class="dash-panel-title">Enrollment Trends</span>
+                  <span class="dash-panel-badge">2024</span>
+                </div>
+                <div class="dash-panel-body">
+                  <div class="chart-container">
+                    <canvas id="enrollment-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table panel -->
+              <div class="dash-panel">
+                <div class="dash-panel-header">
+                  <span class="dash-panel-title">Recent Records</span>
+                  <span class="dash-panel-badge" id="dash-record-count">8 entries</span>
+                </div>
+                <div class="dash-panel-body" style="padding: 0;">
+                  <table class="dash-table" id="dash-table">
+                    <thead id="dash-table-head"></thead>
+                    <tbody id="dash-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ARCHITECTURE SECTION
+       ============================================================ -->
+  <section class="architecture section-padding" id="architecture">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">◇ Architecture</div>
+        <h2 class="section-title">Built for <span class="gradient-text">Scale & Reliability</span></h2>
+        <p class="section-desc">Clean, layered architecture following Go best practices with clear separation of concerns.</p>
+      </div>
+
+      <div class="arch-diagram reveal">
+        <!-- Layer 1: Client -->
+        <div class="arch-row">
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">🌐</div>
+            <div class="arch-node-title">REST API Client</div>
+            <div class="arch-node-desc">HTTP/JSON Requests</div>
+          </div>
+        </div>
+
+        <div class="arch-connector">
+          <div class="arch-connector-line"></div>
+          <span class="arch-connector-label">REST / HTTP</span>
+          <div class="arch-connector-line"></div>
+        </div>
+
+        <!-- Layer 2: API Layer -->
+        <div class="arch-row">
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">🛡️</div>
+            <div class="arch-node-title">Auth Middleware</div>
+            <div class="arch-node-desc">API Key + RBAC</div>
+          </div>
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">🔀</div>
+            <div class="arch-node-title">Gin Router</div>
+            <div class="arch-node-desc">67+ Endpoints</div>
+          </div>
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">📝</div>
+            <div class="arch-node-title">Handlers</div>
+            <div class="arch-node-desc">Request/Response</div>
+          </div>
+        </div>
+
+        <div class="arch-connector">
+          <div class="arch-connector-line"></div>
+          <span class="arch-connector-label">DTOs / Validation</span>
+          <div class="arch-connector-line"></div>
+        </div>
+
+        <!-- Layer 3: Business Logic -->
+        <div class="arch-row">
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">⚙️</div>
+            <div class="arch-node-title">Service Layer</div>
+            <div class="arch-node-desc">Business Logic</div>
+          </div>
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">📡</div>
+            <div class="arch-node-title">gRPC Client</div>
+            <div class="arch-node-desc">Auth Service</div>
+          </div>
+        </div>
+
+        <div class="arch-connector">
+          <div class="arch-connector-line"></div>
+          <span class="arch-connector-label">Repository Pattern</span>
+          <div class="arch-connector-line"></div>
+        </div>
+
+        <!-- Layer 4: Data -->
+        <div class="arch-row">
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">🗃️</div>
+            <div class="arch-node-title">GORM ORM</div>
+            <div class="arch-node-desc">Auto-Migrations</div>
+          </div>
+          <div class="arch-node glass-card">
+            <div class="arch-node-icon">🐘</div>
+            <div class="arch-node-title">PostgreSQL</div>
+            <div class="arch-node-desc">29 Models</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       API EXPLORER
+       ============================================================ -->
+  <section class="api-section section-padding" id="api">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">✧ API Explorer</div>
+        <h2 class="section-title">Explore the <span class="gradient-text">67+ Endpoints</span></h2>
+        <p class="section-desc">A comprehensive RESTful API covering every aspect of educational institution management.</p>
+      </div>
+
+      <!-- Category tabs -->
+      <div class="api-categories reveal">
+        <button class="api-cat-btn active" data-category="Core" id="api-tab-core">📚 Core</button>
+        <button class="api-cat-btn" data-category="Scheduling" id="api-tab-scheduling">📅 Scheduling</button>
+        <button class="api-cat-btn" data-category="Grades" id="api-tab-grades">📊 Grades</button>
+        <button class="api-cat-btn" data-category="Finance" id="api-tab-finance">💰 Finance</button>
+        <button class="api-cat-btn" data-category="Communication" id="api-tab-communication">💬 Communication</button>
+        <button class="api-cat-btn" data-category="Analytics" id="api-tab-analytics">📈 Analytics</button>
+      </div>
+
+      <!-- Endpoints list -->
+      <div class="api-endpoints reveal" id="api-endpoints-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Stats -->
+      <div class="api-info-row reveal">
+        <div class="api-info-card glass-card">
+          <div class="info-value">67+</div>
+          <div class="info-label">Endpoints</div>
+        </div>
+        <div class="api-info-card glass-card">
+          <div class="info-value">10</div>
+          <div class="info-label">Feature Modules</div>
+        </div>
+        <div class="api-info-card glass-card">
+          <div class="info-value">REST</div>
+          <div class="info-label">Protocol</div>
+        </div>
+        <div class="api-info-card glass-card">
+          <div class="info-value">gRPC</div>
+          <div class="info-label">Auth Service</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TECH STACK
+       ============================================================ -->
+  <section class="tech-section section-padding" id="tech-stack">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">◆ Tech Stack</div>
+        <h2 class="section-title">Powered by <span class="gradient-text">Modern Technology</span></h2>
+        <p class="section-desc">Built with battle-tested technologies chosen for performance, reliability, and developer experience.</p>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-card glass-card reveal reveal-delay-1" id="tech-go">
+          <div class="tech-card-icon">🐹</div>
+          <h3>Go 1.24+</h3>
+          <p>Fast, concurrent backend</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-2" id="tech-gin">
+          <div class="tech-card-icon">🍸</div>
+          <h3>Gin Framework</h3>
+          <p>High-performance HTTP</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-3" id="tech-postgres">
+          <div class="tech-card-icon">🐘</div>
+          <h3>PostgreSQL</h3>
+          <p>Rock-solid database</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-4" id="tech-gorm">
+          <div class="tech-card-icon">🗃️</div>
+          <h3>GORM</h3>
+          <p>Elegant ORM layer</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-5" id="tech-grpc">
+          <div class="tech-card-icon">📡</div>
+          <h3>gRPC</h3>
+          <p>Auth microservice</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-1" id="tech-docker">
+          <div class="tech-card-icon">🐳</div>
+          <h3>Docker</h3>
+          <p>Container deployment</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-2" id="tech-swagger">
+          <div class="tech-card-icon">📖</div>
+          <h3>Swagger</h3>
+          <p>API documentation</p>
+        </div>
+        <div class="tech-card glass-card reveal reveal-delay-3" id="tech-github">
+          <div class="tech-card-icon">🔧</div>
+          <h3>GitHub Actions</h3>
+          <p>CI/CD pipeline</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       GETTING STARTED CTA
+       ============================================================ -->
+  <section class="section-padding" style="text-align:center;">
+    <div class="container">
+      <div class="reveal" style="max-width: 650px; margin: 0 auto;">
+        <h2 class="section-title" style="margin-bottom: var(--space-md);">Ready to <span class="gradient-text">Get Started</span>?</h2>
+        <p class="section-desc" style="margin-bottom: var(--space-2xl);">Clone the repo, set up your environment, and have your CRM running in minutes with Docker Compose.</p>
+
+        <div class="api-code" style="text-align: left; margin-bottom: var(--space-2xl); display: inline-block; max-width: 100%;">
+<span class="keyword">$</span> git clone https://github.com/tamimorif/CRM-Service.git
+<span class="keyword">$</span> cd CRM-Service
+<span class="keyword">$</span> cp .env.example .env
+<span class="keyword">$</span> docker-compose up -d
+<span class="string">✓ CRM running at http://localhost:8080</span>
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
+          <a href="https://github.com/tamimorif/CRM-Service" target="_blank" class="btn-primary" id="cta-github">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+          <a href="https://github.com/tamimorif/CRM-Service/blob/main/API.md" target="_blank" class="btn-secondary" id="cta-api-docs">
+            📖 API Docs
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+              <defs><linearGradient id="footer-g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+              <rect width="32" height="32" rx="8" fill="url(#footer-g)"/>
+              <path d="M8 11h6v2H8zm0 4h10v2H8zm0 4h8v2H8zm18-6l-4 4-2-2-1.5 1.5L22 18l5.5-5.5z" fill="#fff" opacity="0.95"/>
+            </svg>
+            CRM-Service
+          </div>
+          <p class="footer-desc">A comprehensive CRM system for educational institutions, built with Go and designed for scalability.</p>
+        </div>
+
+        <div>
+          <h4>Product</h4>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#api">API Explorer</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/tamimorif/CRM-Service/blob/main/README.md" target="_blank">Documentation</a></li>
+            <li><a href="https://github.com/tamimorif/CRM-Service/blob/main/API.md" target="_blank">API Reference</a></li>
+            <li><a href="https://github.com/tamimorif/CRM-Service/issues" target="_blank">Report Issues</a></li>
+            <li><a href="https://github.com/tamimorif/CRM-Service/blob/main/LICENSE" target="_blank">License</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Developer</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/tamimorif" target="_blank">Tamim Orif</a></li>
+            <li><a href="https://github.com/tamimorif/CRM-Service" target="_blank">GitHub Repo</a></li>
+            <li><a href="https://github.com/tamimorif/CRM-Service/pulls" target="_blank">Contribute</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2024 CRM-Service by Tamim Orif. Released under the MIT License.</p>
+        <div class="footer-socials">
+          <a href="https://github.com/tamimorif" target="_blank" aria-label="GitHub">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
