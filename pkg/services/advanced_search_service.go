@@ -166,11 +166,11 @@ func (s *AdvancedSearchService) SearchInvoices(ctx context.Context, req dto.Adva
 // applyFilters applies common filters to the query
 func (s *AdvancedSearchService) applyFilters(query *gorm.DB, req dto.AdvancedSearchRequest) *gorm.DB {
 	// Text search
-	if req.Query != "" {
-		// This is generic, might need adjustment per entity
-		// For now assuming name/title fields exist or using a generic search
-		// In a real implementation, we'd check the model type
-	}
+	// if req.Query != "" {
+	// 	// This is generic, might need adjustment per entity
+	// 	// For now assuming name/title fields exist or using a generic search
+	// 	// In a real implementation, we'd check the model type
+	// }
 
 	// Date range - validate field against whitelist to prevent SQL injection
 	dateField := "created_at"

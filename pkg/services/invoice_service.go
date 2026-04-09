@@ -287,13 +287,6 @@ func (s *invoiceService) toResponse(inv *models.Invoice) *dto.InvoiceResponse {
 	return resp
 }
 
-func (s *invoiceService) generateInvoiceNumber() string {
-	// Legacy fallback - use atomic version when possible
-	now := time.Now()
-	var count int64
-	s.db.Model(&models.Invoice{}).Where("DATE(created_at) = ?", now.Format("2006-01-02")).Count(&count)
-	return fmt.Sprintf("INV-%s-%06d", now.Format("20060102"), count+1)
-}
 
 // generateInvoiceNumberAtomic generates invoice numbers atomically using a counter table
 // This prevents race conditions when multiple invoices are created concurrently
